@@ -97,6 +97,7 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
     if (result_sign == MINUS) {
         result.change_sign();
     }
+
     return *this = result;
 }
 

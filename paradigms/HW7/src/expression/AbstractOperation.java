@@ -1,6 +1,7 @@
 package expression;
 
 import expression.exceptions.DivisionByZeroException;
+import expression.exceptions.MathException;
 import expression.exceptions.OverflowException;
 
 public strictfp abstract class AbstractOperation implements TripleExpression {
@@ -13,7 +14,7 @@ public strictfp abstract class AbstractOperation implements TripleExpression {
     }
 
     @Override
-    public int evaluate(int x, int y, int z) throws OverflowException, DivisionByZeroException {
+    public int evaluate(int x, int y, int z) throws OverflowException, DivisionByZeroException, MathException {
         int x0 = operand0.evaluate(x, y, z);
         int x1 = operand1.evaluate(x, y, z);
         return calculate(x0, x1);

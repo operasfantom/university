@@ -2,7 +2,6 @@ package expression.checked;
 
 import expression.AbstractOperation;
 import expression.TripleExpression;
-import expression.exceptions.DivisionByZeroException;
 import expression.exceptions.OverflowException;
 
 public strictfp class CheckedSubtract extends AbstractOperation {
@@ -12,7 +11,7 @@ public strictfp class CheckedSubtract extends AbstractOperation {
     }
 
     @Override
-    protected int calculate(int x0, int x1) throws OverflowException, DivisionByZeroException {
+    protected int calculate(int x0, int x1) throws OverflowException {
         int x2 = x0 - x1;
         if (((x0 ^ x1) & (x0 ^ x2)) < 0) {
             throw new OverflowException("integer overflow: " + x1 + " - " + x2);

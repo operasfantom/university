@@ -148,6 +148,10 @@ public class ExpressionParser implements Parser {
                     expression = new CheckedNegate(calcHighPriority());
                 }
             }
+        } else if (test(LOG10)) {
+            expression = new CheckedLog10(calcHighPriority());
+        } else if (test(POW10)) {
+            expression = new CheckedPow10(calcHighPriority());
         } else {
             throw new CheckedParserException();
         }

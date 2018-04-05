@@ -49,7 +49,7 @@ public class ExpressionTokenizer {
                     break;
                 default: //numbers and letters
                     Token token = new Token();
-                    i = NextToken(s, i, token);
+                    i = readIdentifier(s, i, token);
                     result.add(token);
                     break;
             }
@@ -64,29 +64,35 @@ public class ExpressionTokenizer {
     }
 
 
-    private static int NextToken(String s, int i, Token token) throws CheckedParserException {
-        int type = Character.getType(s.charAt(i));
+    private static int readIdentifier(String s, int i, Token token) throws CheckedParserException {
         StringBuilder word = new StringBuilder();
-        while (i < s.length() &&
-                (Character.getType(s.charAt(i)) == type)) {
+        while (i < s.length() && (Character.isJavaIdentifierPart(s.charAt(i)))) {
             word.append(s.charAt(i));
             i++;
         }
-        switch (type) {
-            case Character.LOWERCASE_LETTER:
-                if (word.length() == 1) {
-                    token.type = VARIABLE;
-                } else {
-                    token.type = FUNCTION;
-                }
+        token.word = word.toString();
+        switch (token.word) {
+            case "x":
+            case "y":
+            case "z":
+                token.type = VARIABLE;
                 break;
-            case Character.DECIMAL_DIGIT_NUMBER:
-                token.type = NUMBER;
+            case "count":
+                token.type = FUNCTION;
+                break;
+            case "log10":
+                token.type = LOG10;
+                break;
+            case "pow10":
+                token.type = POW10;
                 break;
             default:
-                throw new CheckedParserException("");
+                if (token.word.matches("-?\\d+")) {
+                    token.type = NUMBER;
+                } else {
+                    throw new CheckedParserException();
+                }
         }
-        token.word = word.toString();
         return i;
     }
 
@@ -106,7 +112,9 @@ public class ExpressionTokenizer {
         FUNCTION,      // count...
         NUMBER,        // -1, 1, 999...
         BRACKET_OPEN,  // (
-        BRACKET_CLOSE  // )
+        BRACKET_CLOSE, // )
+        LOG10,         // logarithm for base 10
+        POW10          // power of 10
     }
 
     static class Token {

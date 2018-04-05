@@ -1,6 +1,7 @@
 package expression;
 
 import expression.exceptions.DivisionByZeroException;
+import expression.exceptions.MathException;
 import expression.exceptions.OverflowException;
 
 public class Not implements TripleExpression {
@@ -11,7 +12,7 @@ public class Not implements TripleExpression {
     }
 
     @Override
-    public int evaluate(int x, int y, int z) throws OverflowException, DivisionByZeroException {
+    public int evaluate(int x, int y, int z) throws OverflowException, DivisionByZeroException, MathException {
         return ~(function.evaluate(x, y, z));
     }
 }
