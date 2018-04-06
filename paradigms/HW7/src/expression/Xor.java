@@ -1,6 +1,6 @@
 package expression;
 
-public strictfp class Xor extends AbstractOperation {
+public  class Xor extends AbstractOperation {
     public Xor(TripleExpression x, TripleExpression y) {
         super(x, y);
     }

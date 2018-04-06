@@ -18,34 +18,50 @@ public class ExpressionTokenizer {
                     i++;
                     break;
                 case '~':
-                    i = getToken(s, i, result, NOT);
+                    i = getToken(s, i, 1, result, NOT);
                     break;
                 case '&':
-                    i = getToken(s, i, result, AND);
+                    i = getToken(s, i, 1, result, AND);
                     break;
                 case '^':
-                    i = getToken(s, i, result, XOR);
+                    i = getToken(s, i, 1, result, XOR);
                     break;
                 case '|':
-                    i = getToken(s, i, result, OR);
+                    i = getToken(s, i, 1, result, OR);
                     break;
                 case '(':
-                    i = getToken(s, i, result, BRACKET_OPEN);
+                    i = getToken(s, i, 1, result, BRACKET_OPEN);
                     break;
                 case ')':
-                    i = getToken(s, i, result, BRACKET_CLOSE);
+                    i = getToken(s, i, 1, result, BRACKET_CLOSE);
                     break;
-                case '*':
-                    i = getToken(s, i, result, TIMES);
+                case '*': {
+                    int length = readIdentical(s, i, s.charAt(i));
+                    if (length == 1) {
+                        i = getToken(s, i, length, result, TIMES);
+                    } else if (length == 2) {
+                        i = getToken(s, i, length, result, POWER);
+                    } else {
+                        throw new CheckedParserException("there are " + length + "* in a row");
+                    }
                     break;
-                case '/':
-                    i = getToken(s, i, result, SLASH);
+                }
+                case '/': {
+                    int length = readIdentical(s, i, s.charAt(i));
+                    if (length == 1) {
+                        i = getToken(s, i, length, result, SLASH);
+                    } else if (length == 2) {
+                        i = getToken(s, i, length, result, LOGARITHM);
+                    } else {
+                        throw new CheckedParserException("there are " + length + "/ in a row");
+                    }
                     break;
+                }
                 case '+':
-                    i = getToken(s, i, result, PLUS);
+                    i = getToken(s, i, 1, result, PLUS);
                     break;
                 case '-':
-                    i = getToken(s, i, result, MINUS);
+                    i = getToken(s, i, 1, result, MINUS);
                     break;
                 default: //numbers and letters
                     Token token = new Token();
@@ -57,12 +73,20 @@ public class ExpressionTokenizer {
         return result;
     }
 
-    private static int getToken(String s, int i, List<Token> result, TokenType type) {
-        result.add(new Token(type, s.substring(i, i + 1)));
-        i++;
+    private static int getToken(String s, int i, int length, List<Token> result, TokenType type) {
+        result.add(new Token(type, s.substring(i, i + length)));
+        i += length;
         return i;
     }
 
+    private static int readIdentical(String s, int i, char c) {
+        int result = 0;
+        while (i < s.length() && s.charAt(i) == c) {
+            ++result;
+            ++i;
+        }
+        return result;
+    }
 
     private static int readIdentifier(String s, int i, Token token) throws CheckedParserException {
         StringBuilder word = new StringBuilder();
@@ -114,7 +138,9 @@ public class ExpressionTokenizer {
         BRACKET_OPEN,  // (
         BRACKET_CLOSE, // )
         LOG10,         // logarithm for base 10
-        POW10          // power of 10
+        POW10,         // power of 10
+        POWER,         // a ^ b
+        LOGARITHM      // log a base b
     }
 
     static class Token {

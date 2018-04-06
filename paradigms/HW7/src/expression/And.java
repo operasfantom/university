@@ -1,6 +1,6 @@
 package expression;
 
-public strictfp class And extends AbstractOperation {
+public class And extends AbstractOperation {
     public And(TripleExpression x, TripleExpression y) {
         super(x, y);
     }

@@ -4,7 +4,7 @@ import expression.AbstractOperation;
 import expression.TripleExpression;
 import expression.exceptions.OverflowException;
 
-public strictfp class CheckedAdd extends AbstractOperation {
+public  class CheckedAdd extends AbstractOperation {
     public CheckedAdd(TripleExpression x, TripleExpression y) {
         super(x, y);
     }

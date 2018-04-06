@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
-public abstract strictfp class BaseTest {
+public abstract  class BaseTest {
     public final Random random = new Random(7240958270458L);
     protected TestCounter counter = new TestCounter();
     private int ops;

@@ -4,7 +4,7 @@ import expression.AbstractOperation;
 import expression.TripleExpression;
 import expression.exceptions.DivisionByZeroException;
 
-public strictfp class CheckedDivide extends AbstractOperation {
+public  class CheckedDivide extends AbstractOperation {
 
     public CheckedDivide(TripleExpression x, TripleExpression y) {
         super(x, y);

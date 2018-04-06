@@ -1,6 +1,6 @@
 package expression;
 
-public strictfp class Or extends AbstractOperation {
+public  class Or extends AbstractOperation {
     public Or(TripleExpression x, TripleExpression y) {
         super(x, y);
     }

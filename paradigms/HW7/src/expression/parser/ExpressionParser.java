@@ -16,12 +16,24 @@ public class ExpressionParser implements Parser {
     private static int pointer = 0;
     private static int balance = 0;
 
-    private static boolean test(ExpressionTokenizer.TokenType type) {
-        if (tokens.get(pointer).getType() == type) {
-            pointer++;
-            return true;
+    private static boolean test(ExpressionTokenizer.TokenType type) throws CheckedParserException {
+        if (pointer < tokens.size()) {
+            if (tokens.get(pointer).getType() == type) {
+                pointer++;
+                return true;
+            }
+            return false;
+        } else {
+            throw new CheckedParserException();
         }
-        return false;
+    }
+
+    private static String currentWord() throws CheckedParserException {
+        if (pointer < tokens.size()){
+            return tokens.get(pointer).getWord();
+        } else{
+            throw new CheckedParserException();
+        }
     }
 
     private static void checkIfNotNull(Object... objects) throws CheckedParserException {
@@ -92,13 +104,28 @@ public class ExpressionParser implements Parser {
     }
 
     private static TripleExpression calcMulDiv() throws CheckedParserException {
-        TripleExpression expression = calcHighPriority();
+        TripleExpression expression = calcPowLog();
 
         while (pointer < tokens.size()) {
             if (test(TIMES)) {
-                expression = checkedEvaluate(expression, calcHighPriority(), CheckedMultiply::new);
+                expression = checkedEvaluate(expression, calcPowLog(), CheckedMultiply::new);
             } else if (test(SLASH)) {
-                expression = checkedEvaluate(expression, calcHighPriority(), CheckedDivide::new);
+                expression = checkedEvaluate(expression, calcPowLog(), CheckedDivide::new);
+            } else {
+                return expression;
+            }
+        }
+        return expression;
+    }
+
+    private static TripleExpression calcPowLog() throws CheckedParserException {
+        TripleExpression expression = calcHighPriority();
+
+        while (pointer < tokens.size()) {
+            if (test(POWER)) {
+                expression = checkedEvaluate(expression, calcHighPriority(), CheckedPower::new);
+            } else if (test(LOGARITHM)) {
+                expression = checkedEvaluate(expression, calcHighPriority(), CheckedLogaritm::new);
             } else {
                 return expression;
             }
@@ -108,7 +135,7 @@ public class ExpressionParser implements Parser {
 
     private static TripleExpression calcHighPriority() throws CheckedParserException {
         TripleExpression expression = null;
-        String word = tokens.get(pointer).getWord();
+        String word = currentWord();
         if (test(BRACKET_OPEN)) {
             ++balance;
             expression = calcOr();
@@ -131,22 +158,25 @@ public class ExpressionParser implements Parser {
                 throw new CheckedParserException("wrong name of function: " + word);
             }
         } else if (test(NUMBER)) {
-            expression = new Const(Integer.parseInt(word));
+            try {
+                expression = new Const(Integer.parseInt(word));
+            } catch (NumberFormatException e){
+                throw new CheckedParserException("incorrect number: " + word);
+            }
         } else if (test(MINUS)) {
             if (pointer < tokens.size()) {
-                /*Token nextToken = tokens.get(pointer++);
-
-                if (nextToken.getType() == ExpressionTokenizer.TokenType.NUMBER) {
-                    expression = new Const(Integer.parseInt("-" + nextToken.getWord()));
-                } else {
-                    pointer--;
-                    expression = new CheckedNegate(calcHighPriority());
-                }*/
+                word = currentWord();
                 if (test(NUMBER)) {
-                    expression = new Const(Integer.parseInt("-" + tokens.get(pointer - 1).getWord()));
+                    try {
+                        expression = new Const(Integer.parseInt("-" + word));
+                    } catch (NumberFormatException e){
+                        throw new CheckedParserException("incorrect number: " + "-" + word);
+                    }
                 } else {
                     expression = new CheckedNegate(calcHighPriority());
                 }
+            } else {
+                throw new CheckedParserException();
             }
         } else if (test(LOG10)) {
             expression = new CheckedLog10(calcHighPriority());

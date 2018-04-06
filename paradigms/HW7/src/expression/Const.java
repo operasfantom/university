@@ -1,6 +1,6 @@
 package expression;
 
-public strictfp class Const implements TripleExpression {
+public  class Const implements TripleExpression {
     private final Number value;
 
     public Const(Number value) {

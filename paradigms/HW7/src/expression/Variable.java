@@ -1,6 +1,6 @@
 package expression;
 
-public strictfp class Variable implements TripleExpression {
+public  class Variable implements TripleExpression {
     public final String name;
 
     public Variable(String name) {

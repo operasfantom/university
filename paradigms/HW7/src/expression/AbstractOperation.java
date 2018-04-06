@@ -4,7 +4,7 @@ import expression.exceptions.DivisionByZeroException;
 import expression.exceptions.MathException;
 import expression.exceptions.OverflowException;
 
-public strictfp abstract class AbstractOperation implements TripleExpression {
+public  abstract class AbstractOperation implements TripleExpression {
     private TripleExpression operand0;
     private TripleExpression operand1;
 
@@ -20,5 +20,5 @@ public strictfp abstract class AbstractOperation implements TripleExpression {
         return calculate(x0, x1);
     }
 
-    protected abstract int calculate(int x0, int x1) throws OverflowException, DivisionByZeroException;
+    protected abstract int calculate(int x0, int x1) throws OverflowException, DivisionByZeroException, MathException;
 }

@@ -4,13 +4,11 @@ import expression.AbstractOperation;
 import expression.TripleExpression;
 import expression.exceptions.OverflowException;
 
-public strictfp class CheckedMultiply extends AbstractOperation {
+public class CheckedMultiply extends AbstractOperation {
     public CheckedMultiply(TripleExpression x, TripleExpression y) {
         super(x, y);
     }
 
-
-    @Override
     protected int calculate(int x0, int x1) throws OverflowException {
         if (x0 == 0 || x1 == 0) {
             return 0;
