@@ -1,13 +1,11 @@
 #include "arithmetic.h"
-#include <stdint.h>
-#include <assert.h>
 
 word_t simple_add(word_t a, word_t b, word_t &cf) { // cf in {0, 1}
     /*__uint128_t t = (__uint128_t) 0 + (__uint128_t) a + (__uint128_t) b + (__uint128_t) cf;
     cf = static_cast<word_t>(t >> SIZEOF_WORD_T);
     return static_cast<word_t>(t);*/
     word_t result = a + b + cf;
-    if (b == SIZE_MAX && (a != 0 || cf != 0) || (a > SIZE_MAX - b - cf)) {
+    if ((b == WORD_MAX && (a != 0 || cf != 0)) || (a > WORD_MAX - b - cf)) {
         cf = 1;
     } else {
         cf = 0;

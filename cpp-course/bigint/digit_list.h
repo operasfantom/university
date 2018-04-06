@@ -2,9 +2,7 @@
 #define BIGINT_DIGIT_LIST_H
 
 #include <vector>
-#include <cstdlib>
-
-typedef size_t word_t;
+#include "constants.h"
 
 struct digit_list {
     std::vector<word_t> list;
@@ -13,7 +11,7 @@ struct digit_list {
 
     digit_list(digit_list const &other) { list = other.list; }
 
-    digit_list(word_t const &a) {
+    explicit digit_list(word_t const &a) {
         list = {static_cast<word_t>(a)};
     };
 

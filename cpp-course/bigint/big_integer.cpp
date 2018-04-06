@@ -1,17 +1,15 @@
 #include "big_integer.h"
 #include "arithmetic.h"
 
-#include <cstring>
 #include <algorithm>
-#include <string>
-#include <functional>
-#include <cassert>
 
 big_integer::big_integer() : digits(), sign(PLUS) {}
 
 big_integer::big_integer(big_integer const &other) = default;
 
 big_integer::big_integer(int a) : digits(a), sign(a >= 0 ? PLUS : MINUS) {}
+
+big_integer::big_integer(word_t a): digits(a), sign(PLUS) {}
 
 big_integer::big_integer(std::string const &str) : big_integer() {
     bool new_sign = (str[0] == '-' ? MINUS : PLUS);
@@ -28,7 +26,7 @@ big_integer::big_integer(std::string const &str) : big_integer() {
         } else {
             *this *= BLOCK;
         }
-        *this += static_cast<size_t>(stoull(part));
+        *this += static_cast<word_t>(stoull(part));
     }
 
     pop_leading_zeros();
@@ -45,7 +43,7 @@ big_integer &big_integer::operator=(big_integer const &other) = default;
 big_integer &big_integer::operator+=(big_integer const &rhs) {
     align(rhs);
 
-    size_t cf = 0;
+    word_t cf = 0;
     for (size_t i = 0; i < size(); ++i) {
         digits[i] = simple_add(at(i), rhs.at(i), cf);
     }
@@ -81,10 +79,10 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
     result.reserve(abs_a->size() + abs_b->size());
 
     for (size_t i = 0; i < abs_a->size(); ++i) {
-        word_t rdx = 0, cf = 0;
+        word_t rdx = 0, cf = 0, factor = abs_a->digits[i];
         for (size_t j = 0; j < abs_b->size(); ++j) {
             result.digits[i + j] = simple_add(result.digits[i + j], rdx, cf);
-            word_t rax = simple_mul(abs_a->digits[i], abs_b->digits[j], rdx);
+            word_t rax = simple_mul(factor, abs_b->digits[j], rdx);
             rdx += cf;
             cf = 0;
             result.digits[i + j] = simple_add(result.digits[i + j], rax, cf);
@@ -96,6 +94,13 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
 
     if (result_sign == MINUS) {
         result.change_sign();
+    }
+
+    if (abs_a != this){
+        delete abs_a;
+    }
+    if (abs_b != &rhs){
+        delete abs_b;
     }
 
     return *this = result;
@@ -111,12 +116,11 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
     result.reserve(abs_a.size());
 
     word_t scale;
-    if (abs_b.digits.back() < BASE / 2) {
-        scale = BASE / (abs_b.digits.back() + 1);
+    if (abs_b.digits.back() < WORD_MAX / 2) {
+        scale = WORD_MAX / (abs_b.digits.back() + 1);
         abs_a *= scale;
         abs_b *= scale;
     }
-
 
     big_integer dividend;
 
@@ -272,7 +276,7 @@ big_integer big_integer::operator~() const {
 big_integer &big_integer::operator++() {
     //return *this += 1;
     for (size_t i = 0; i < size(); ++i) {
-        if (digits.list[i] != ~0) {
+        if (digits.list[i] != ZERO_MINUS) {
             ++digits.list[i];
             return *this;
         }
@@ -298,7 +302,24 @@ big_integer big_integer::operator++(int) {
 }
 
 big_integer &big_integer::operator--() {
-    return *this -= 1;
+    for (size_t i = 0; i < size(); ++i) {
+        if (digits.list[i] != 0) {
+            --digits.list[i];
+            return *this;
+        }
+        digits.list[i] = ~0;
+    }
+
+    digits.push_back(zero() - 1);
+
+    bool new_sign = zero() == ZERO_MINUS ? PLUS : MINUS;
+    if (new_sign != sign) {
+        sign = new_sign;
+    }
+
+    pop_leading_zeros();
+
+    return *this;
 }
 
 big_integer big_integer::operator--(int) {
@@ -364,12 +385,8 @@ bool operator<(big_integer const &a, big_integer const &b) {
         return a.size() < b.size();
     }
 
-    for (size_t i = a.size(); i > 0; --i) {
-        if (a.digits[i - 1] != b.digits[i - 1]) {
-            return a.digits[i - 1] < b.digits[i - 1];
-        }
-    }
-    return false;
+    return std::lexicographical_compare(a.digits.list.rbegin(), a.digits.list.rend(),
+                                        b.digits.list.rbegin(), b.digits.list.rend());
 }
 
 bool operator>(big_integer const &a, big_integer const &b) {
@@ -381,12 +398,8 @@ bool operator>(big_integer const &a, big_integer const &b) {
         return a.size() > b.size();
     }
 
-    for (size_t i = a.size(); i > 0; --i) {
-        if (a.digits[i - 1] != b.digits[i - 1]) {
-            return a.digits[i - 1] > b.digits[i - 1];
-        }
-    }
-    return false;
+    return std::lexicographical_compare(b.digits.list.rbegin(), b.digits.list.rend(),
+                                        a.digits.list.rbegin(), a.digits.list.rend());
 }
 
 bool operator<=(big_integer const &a, big_integer const &b) {
@@ -486,8 +499,6 @@ void big_integer::reserve(size_t n) {
 
     digits.resize(new_size, zero());
 }
-
-big_integer::big_integer(word_t x) : digits(x), sign(PLUS) {}
 
 void big_integer::change_sign() {
     sign ^= true;

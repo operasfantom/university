@@ -1,26 +1,9 @@
 #ifndef BIG_INTEGER_H
 #define BIG_INTEGER_H
 
-#include <cstddef>
-#include <gmp.h>
-#include <iosfwd>
-#include <vector>
-#include <cstdlib>
+#include <string>
 #include <functional>
-#include <cmath>
-#include <limits>
 #include "digit_list.h"
-
-const bool PLUS = false;
-const bool MINUS = true;
-
-const word_t ZERO_PLUS = 0;
-const word_t ZERO_MINUS = ~0;
-
-const word_t BASE = ~0;
-
-const size_t BLOCK_SIZE = 19;
-const word_t BLOCK = static_cast<const word_t>(1e19);
 
 struct big_integer {
     big_integer();
@@ -29,9 +12,9 @@ struct big_integer {
 
     big_integer(int);
 
-    big_integer(size_t);
+    big_integer(std::string const &str);
 
-    explicit big_integer(std::string const &str);
+    big_integer(word_t a);
 
     ~big_integer();
 
