@@ -68,10 +68,12 @@ struct big_integer {
 
     friend std::string to_string(big_integer const &a);
 
+    friend big_integer abs(big_integer const &a);
 
-    bool sign;
 private:
     digit_list digits;
+
+    bool sign;
 
     void pop_leading_zeros();
 
