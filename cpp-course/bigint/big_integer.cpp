@@ -72,35 +72,28 @@ big_integer &big_integer::operator-=(big_integer const &rhs) {
 big_integer &big_integer::operator*=(big_integer const &rhs) {
     bool result_sign = (this->sign) ^(rhs.sign);
 
-    big_integer const *abs_a = this->sign == MINUS ? new big_integer(abs(*this)) : this;
-    big_integer const *abs_b = rhs.sign == MINUS ? new big_integer(abs(rhs)) : &rhs;
+    big_integer abs_a = abs(*this);
+    big_integer abs_b = abs(rhs);
     big_integer result;
 
-    result.reserve(abs_a->size() + abs_b->size());
+    result.reserve(abs_a.size() + abs_b.size());
 
-    for (size_t i = 0; i < abs_a->size(); ++i) {
-        word_t rdx = 0, cf = 0, factor = abs_a->digits[i];
-        for (size_t j = 0; j < abs_b->size(); ++j) {
+    for (size_t i = 0; i < abs_a.size(); ++i) {
+        word_t rdx = 0, cf = 0, factor = abs_a.digits[i];
+        for (size_t j = 0; j < abs_b.size(); ++j) {
             result.digits[i + j] = simple_add(result.digits[i + j], rdx, cf);
-            word_t rax = simple_mul(factor, abs_b->digits[j], rdx);
+            word_t rax = simple_mul(factor, abs_b.digits[j], rdx);
             rdx += cf;
             cf = 0;
             result.digits[i + j] = simple_add(result.digits[i + j], rax, cf);
         }
-        result.digits[i + abs_b->size()] = rdx + cf;
+        result.digits[i + abs_b.size()] = rdx + cf;
     }
 
     result.pop_leading_zeros();
 
     if (result_sign == MINUS) {
         result.change_sign();
-    }
-
-    if (abs_a != this){
-        delete abs_a;
-    }
-    if (abs_b != &rhs){
-        delete abs_b;
     }
 
     return *this = result;
@@ -280,7 +273,7 @@ big_integer &big_integer::operator++() {
             ++digits.list[i];
             return *this;
         }
-        digits.list[i] = 0;
+        digits.list[i] = ZERO_PLUS;
     }
 
     digits.push_back(zero() + 1);
@@ -307,7 +300,7 @@ big_integer &big_integer::operator--() {
             --digits.list[i];
             return *this;
         }
-        digits.list[i] = ~0;
+        digits.list[i] = ZERO_MINUS;
     }
 
     digits.push_back(zero() - 1);
@@ -441,9 +434,7 @@ std::string to_string(big_integer const &a) {
     if (is_negative) {
         result += '-';
     }
-    reverse(result.begin(), result.end());
-    return result;
-    //return std::string(result.rbegin(), result.rend());
+    return std::string(result.rbegin(), result.rend());
 }
 
 std::ostream &operator<<(std::ostream &s, big_integer const &a) {
@@ -470,7 +461,6 @@ size_t big_integer::size() const {
 word_t big_integer::zero() const {
     return (sign == PLUS ? ZERO_PLUS : ZERO_MINUS);
 }
-
 
 big_integer abs(big_integer const &a) {
     return a.sign == MINUS ? -a : a;

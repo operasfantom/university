@@ -9,7 +9,7 @@ struct digit_list {
 
     digit_list() { list = {0}; }
 
-    digit_list(digit_list const &other) { list = other.list; }
+    digit_list(digit_list const &other) = default;
 
     explicit digit_list(word_t const &a) {
         list = {static_cast<word_t>(a)};
