@@ -15,7 +15,7 @@ public class CheckedPower extends AbstractOperation {
             throw new MathException("0^0 found");
         }
         if (x1 < 0) {
-            throw new MathException("");
+            throw new MathException("power base is negative:" + x0 + "^" + x1);
         }
         CheckedMultiply cm = new CheckedMultiply(null, null);
         int result = 1;

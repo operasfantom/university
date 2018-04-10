@@ -114,7 +114,7 @@ public class ExpressionTokenizer {
                 if (token.word.matches("-?\\d+")) {
                     token.type = NUMBER;
                 } else {
-                    throw new CheckedParserException();
+                    throw new CheckedParserException("\"" + word + "\"" + " isn't correct token", i);
                 }
         }
         return i;

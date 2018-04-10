@@ -24,7 +24,7 @@ public class ExpressionParser implements Parser {
             }
             return false;
         } else {
-            throw new CheckedParserException();
+            throw new CheckedParserException("required missing elements in the end");
         }
     }
 
@@ -32,14 +32,14 @@ public class ExpressionParser implements Parser {
         if (pointer < tokens.size()){
             return tokens.get(pointer).getWord();
         } else{
-            throw new CheckedParserException();
+            throw new CheckedParserException("required missing elements in the end");
         }
     }
 
     private static void checkIfNotNull(Object... objects) throws CheckedParserException {
         for (Object o : objects) {
             if (o == null) {
-                throw new CheckedParserException("");
+                throw new CheckedParserException("incorrect expression");
             }
         }
     }
@@ -145,7 +145,7 @@ public class ExpressionParser implements Parser {
                     throw new CheckedParserException("negative balance of parentheses");
                 }
             } else {
-                throw new CheckedParserException("closed parnthes is absent in position: " + pointer);
+                throw new CheckedParserException("closed parentheses is absent", pointer);
             }
         } else if (test(NOT)) {
             expression = new Not(calcHighPriority());
@@ -161,7 +161,7 @@ public class ExpressionParser implements Parser {
             try {
                 expression = new Const(Integer.parseInt(word));
             } catch (NumberFormatException e){
-                throw new CheckedParserException("incorrect number: " + word);
+                throw new CheckedParserException("\"" + word + "\"" + " is incorrect number", pointer);
             }
         } else if (test(MINUS)) {
             if (pointer < tokens.size()) {
@@ -170,20 +170,20 @@ public class ExpressionParser implements Parser {
                     try {
                         expression = new Const(Integer.parseInt("-" + word));
                     } catch (NumberFormatException e){
-                        throw new CheckedParserException("incorrect number: " + "-" + word);
+                        throw new CheckedParserException("\"" + word + "\"" + " is incorrect number", pointer);
                     }
                 } else {
                     expression = new CheckedNegate(calcHighPriority());
                 }
             } else {
-                throw new CheckedParserException();
+                throw new CheckedParserException("required missing elements in the end after sign minus");
             }
         } else if (test(LOG10)) {
             expression = new CheckedLog10(calcHighPriority());
         } else if (test(POW10)) {
             expression = new CheckedPow10(calcHighPriority());
         } else {
-            throw new CheckedParserException();
+            throw new CheckedParserException("\"" + word + "\"" +" is unsuitable token", pointer);
         }
         return expression;
     }
@@ -194,10 +194,10 @@ public class ExpressionParser implements Parser {
         balance = 0;
         TripleExpression result = calcOr();
         if (balance != 0) {
-            throw new CheckedParserException("the number of opening and closing parentheses is different");
+            throw new CheckedParserException("the quantity of opening and closing parentheses is different");
         }
         if (pointer != tokens.size()) {
-            throw new CheckedParserException();
+            throw new CheckedParserException("couldn't parse expression after position" + pointer);
         }
         return result;
     }

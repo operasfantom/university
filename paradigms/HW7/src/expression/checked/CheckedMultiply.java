@@ -14,16 +14,16 @@ public class CheckedMultiply extends AbstractOperation {
             return 0;
         }
         if (x0 > 0 && x1 > 0 && Integer.MAX_VALUE / x0 < x1) {
-            throw new OverflowException("");
+            throw new OverflowException(x0 + "*" + x1 + "overflowed");
         }
         if (x0 < 0 && x1 < 0 && Integer.MAX_VALUE / x0 > x1) {
-            throw new OverflowException("");
+            throw new OverflowException(x0 + "*" + x1 + "overflowed");
         }
         if (x0 > 0 && x1 < 0 && Integer.MIN_VALUE / x0 > x1) {
-            throw new OverflowException("");
+            throw new OverflowException(x0 + "*" + x1 + "overflowed");
         }
         if (x0 < 0 && x1 > 0 && Integer.MIN_VALUE / x1 > x0) {
-            throw new OverflowException("");
+            throw new OverflowException(x0 + "*" + x1 + "overflowed");
         }
         return x0 * x1;
     }
