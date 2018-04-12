@@ -42,6 +42,21 @@ public class BigIntegerNumber implements AbstractNumber<BigIntegerNumber> {
         return new BigIntegerNumber(value.negate());
     }
 
+    @Override
+    public int bitCount() {
+        return value.bitCount();
+    }
+
+    @Override
+    public BigIntegerNumber min(BigIntegerNumber rhs) {
+        return new BigIntegerNumber(value.min(rhs.value));
+    }
+
+    @Override
+    public BigIntegerNumber max(BigIntegerNumber rhs) {
+        return new BigIntegerNumber(value.max(rhs.value));
+    }
+
     public BigInteger getValue() {
         return value;
     }

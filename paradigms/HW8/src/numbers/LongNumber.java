@@ -1,8 +1,5 @@
 package numbers;
 
-import expression.exceptions.DivisionByZeroException;
-import expression.exceptions.OverflowException;
-
 public class LongNumber implements AbstractNumber<LongNumber> {
     private final long value;
 
@@ -37,6 +34,21 @@ public class LongNumber implements AbstractNumber<LongNumber> {
     @Override
     public LongNumber negate() {
         return new LongNumber(-value);
+    }
+
+    @Override
+    public int bitCount() {
+        return Long.bitCount(value);
+    }
+
+    @Override
+    public LongNumber min(LongNumber rhs) {
+        return new LongNumber(value < rhs.value ? value : rhs.value);
+    }
+
+    @Override
+    public LongNumber max(LongNumber rhs) {
+        return new LongNumber(value > rhs.value ? value : rhs.value);
     }
 
     @Override

@@ -8,7 +8,7 @@ public class ShortNumber implements AbstractNumber<ShortNumber> {
     }
 
     public ShortNumber(String s) {
-        this.value = Short.parseShort(s);
+        this.value = (short) Integer.parseInt(s);
     }
 
     @Override
@@ -34,6 +34,25 @@ public class ShortNumber implements AbstractNumber<ShortNumber> {
     @Override
     public ShortNumber negate() {
         return new ShortNumber((short) -value);
+    }
+
+    @Override
+    public int bitCount() {
+        if (value >= 0) {
+            return Integer.bitCount(value);
+        } else{
+            return Integer.bitCount(value) - 16;
+        }
+    }
+
+    @Override
+    public ShortNumber min(ShortNumber rhs) {
+        return new ShortNumber(value < rhs.value ? value : rhs.value);
+    }
+
+    @Override
+    public ShortNumber max(ShortNumber rhs) {
+        return new ShortNumber(value > rhs.value ? value : rhs.value);
     }
 
     @Override

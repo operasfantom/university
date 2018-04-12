@@ -40,6 +40,21 @@ public class IntegerNumber implements AbstractNumber<IntegerNumber> {
         return new IntegerNumber(-value);
     }
 
+    @Override
+    public int bitCount() {
+        return Integer.bitCount(value);
+    }
+
+    @Override
+    public IntegerNumber min(IntegerNumber rhs) {
+        return new IntegerNumber(value < rhs.value ? value : rhs.value);
+    }
+
+    @Override
+    public IntegerNumber max(IntegerNumber rhs) {
+        return new IntegerNumber(value > rhs.value ? value : rhs.value);
+    }
+
     public Integer getValue() {
         return value;
     }

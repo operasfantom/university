@@ -40,6 +40,21 @@ public class DoubleNumber implements AbstractNumber<DoubleNumber> {
         return new DoubleNumber(-value);
     }
 
+    @Override
+    public int bitCount() {
+        return Long.bitCount(Double.doubleToLongBits(value));
+    }
+
+    @Override
+    public DoubleNumber min(DoubleNumber rhs) {
+        return new DoubleNumber(value < rhs.value ? value : rhs.value);
+    }
+
+    @Override
+    public DoubleNumber max(DoubleNumber rhs) {
+        return new DoubleNumber(value > rhs.value ? value : rhs.value);
+    }
+
     public Double getValue() {
         return value;
     }

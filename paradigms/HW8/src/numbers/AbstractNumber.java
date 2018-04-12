@@ -15,6 +15,12 @@ public interface AbstractNumber<T> {
 
     T negate() throws OverflowException;
 
+    int bitCount();
+
+    T min(T rhs);
+
+    T max(T rhs);
+
     String reader(String s, int i);
 
     T decoder(String s);

@@ -78,6 +78,21 @@ public class CheckedIntegerNumber implements AbstractNumber<CheckedIntegerNumber
     }
 
     @Override
+    public int bitCount() {
+        return Integer.bitCount(value);
+    }
+
+    @Override
+    public CheckedIntegerNumber min(CheckedIntegerNumber rhs) {
+        return new CheckedIntegerNumber(value < rhs.value ? value : rhs.value);
+    }
+
+    @Override
+    public CheckedIntegerNumber max(CheckedIntegerNumber rhs) {
+        return new CheckedIntegerNumber(value > rhs.value ? value : rhs.value);
+    }
+
+    @Override
     public String reader(String s, int i) {
         StringBuilder sb = new StringBuilder();
         while (i < s.length() && Character.isDigit(s.charAt(i))) {
