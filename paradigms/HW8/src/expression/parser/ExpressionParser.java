@@ -48,17 +48,17 @@ public class ExpressionParser implements Parser {
         }
     }
 
-    private static TripleExpression checkedEvaluate(TripleExpression expression, TripleExpression rhs, BinaryOperator<TripleExpression> op) throws CheckedParserException {
+    private static <T extends AbstractNumber<T>> TripleExpression<T> checkedEvaluate(TripleExpression<T> expression, TripleExpression<T> rhs, BinaryOperator<TripleExpression<T>> op) throws CheckedParserException {
         checkIfNotNull(expression, rhs);
         return op.apply(expression, rhs);
     }
 
-    private static <T extends AbstractNumber<T>> TripleExpression calcLowPriority(T objectT) throws CheckedParserException {
+    private static <T extends AbstractNumber<T>> TripleExpression<T> calcLowPriority(T objectT) throws CheckedParserException {
         return calcMinMax(objectT);
     }
 
-    private static <T extends AbstractNumber<T>> TripleExpression calcMinMax(T objectT) throws CheckedParserException {
-        TripleExpression expression = calcPlusMinus(objectT);
+    private static <T extends AbstractNumber<T>> TripleExpression<T> calcMinMax(T objectT) throws CheckedParserException {
+        TripleExpression<T> expression = calcPlusMinus(objectT);
 
         while (pointer < tokens.size()) {
             if (test(MIN)) {
@@ -72,8 +72,8 @@ public class ExpressionParser implements Parser {
         return expression;
     }
 
-    private static <T extends AbstractNumber<T>> TripleExpression calcPlusMinus(T objectT) throws CheckedParserException {
-        TripleExpression expression = calcMulDiv(objectT);
+    private static <T extends AbstractNumber<T>> TripleExpression<T> calcPlusMinus(T objectT) throws CheckedParserException {
+        TripleExpression<T> expression = calcMulDiv(objectT);
 
         while (pointer < tokens.size()) {
             if (test(PLUS)) {
@@ -87,8 +87,8 @@ public class ExpressionParser implements Parser {
         return expression;
     }
 
-    private static <T extends AbstractNumber<T>> TripleExpression calcMulDiv(T objectT) throws CheckedParserException {
-        TripleExpression expression = calcHighPriority(objectT);
+    private static <T extends AbstractNumber<T>> TripleExpression<T> calcMulDiv(T objectT) throws CheckedParserException {
+        TripleExpression<T> expression = calcHighPriority(objectT);
 
         while (pointer < tokens.size()) {
             if (test(TIMES)) {
@@ -102,8 +102,8 @@ public class ExpressionParser implements Parser {
         return expression;
     }
 
-    private static <T extends AbstractNumber<T>> TripleExpression calcHighPriority(T objectT) throws CheckedParserException {
-        TripleExpression expression;
+    private static <T extends AbstractNumber<T>> TripleExpression<T> calcHighPriority(T objectT) throws CheckedParserException {
+        TripleExpression<T> expression;
         String word = currentWord();
         if (test(BRACKET_OPEN)) {
             ++balance;
@@ -117,10 +117,10 @@ public class ExpressionParser implements Parser {
                 throw new CheckedParserException("closed parentheses is absent", pointer);
             }
         } else if (test(VARIABLE)) {
-            expression = new Variable(word);
+            expression = new Variable<>(word);
         } else if (test(FUNCTION)) {
             if ("count".equals(word)) {
-                expression = new BitCount<T>(calcHighPriority(objectT));
+                expression = new BitCount<>(calcHighPriority(objectT));
             } else {
                 throw new CheckedParserException("wrong name of function: " + word);
             }
@@ -140,7 +140,7 @@ public class ExpressionParser implements Parser {
                         throw new CheckedParserException("\"" + word + "\"" + " is incorrect number", pointer);
                     }
                 } else {
-                    expression = new CheckedNegate(calcHighPriority(objectT));
+                    expression = new CheckedNegate<>(calcHighPriority(objectT));
                 }
             } else {
                 throw new CheckedParserException("required missing elements in the end after sign minus");
@@ -156,7 +156,7 @@ public class ExpressionParser implements Parser {
         tokens = tokenizer.tokenize(s, objectT);
         pointer = 0;
         balance = 0;
-        TripleExpression result = calcLowPriority(objectT);
+        TripleExpression<T> result = calcLowPriority(objectT);
         if (balance != 0) {
             throw new CheckedParserException("the quantity of opening and closing parentheses is different");
         }
