@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "constants.h"
 #include <vector>
+#include <iostream>
 
 template<typename T>
 struct dynamic_storage {
@@ -13,14 +14,32 @@ struct dynamic_storage {
     size_t size;
     size_t capacity;
 
-    T data[];
+    T *data;
 
     dynamic_storage() {
         ref_counter = 1;
         size = 1;
         capacity = INITIAL_CAPACITY;
-        //data = realloc(INITIAL_CAPACITY * sizeof(T));//TODO
+        data = (T *) malloc(capacity * sizeof(T));
+
+        data[0] = 0;
     }
+
+    explicit dynamic_storage(T val) {
+        /**this = dynamic_storage();*/
+        ref_counter = 1;
+        size = 1;
+        capacity = INITIAL_CAPACITY;
+        data = (T *) malloc(capacity * sizeof(T));
+
+        data[0] = val;
+    }
+
+    ~dynamic_storage() {
+        //free(data);
+    }
+
+    dynamic_storage &operator=(dynamic_storage const &other) = default;
 
     void push_back(T val);
 
@@ -32,15 +51,11 @@ struct dynamic_storage {
 
     const T *rbegin() const;
 
-    const T *rend() const;
-
     T *begin();
 
     T *end();
 
     T *rbegin();
-
-    T *rend();
 
     T back() const;
 
@@ -52,12 +67,16 @@ struct dynamic_storage {
 
     void resize(size_t);
 
-    void resize(size_t, word_t);
+    void reserve(size_t n, T);
 
-    template <typename S>
+    template<typename S>
     friend bool operator==(dynamic_storage<S> const &a, dynamic_storage<S> const &b);
 
-    void reserve(size_t n);
+    template<typename S>
+    friend bool operator<(dynamic_storage<S> const &a, dynamic_storage<S> const &b);
+
+    template<typename S>
+    friend bool operator>(dynamic_storage<S> const &a, dynamic_storage<S> const &b);
 };
 
 #include "dynamic_storage.hpp"

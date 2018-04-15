@@ -92,6 +92,12 @@ private:
     void reserve(size_t);
 
     void change_sign();
+
+    bool is_small_object()const;
+
+    void transform_to_big_object();
+
+    void transform_to_small_object();
 };
 
 big_integer operator+(big_integer a, big_integer const &b);

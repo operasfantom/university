@@ -13,16 +13,20 @@ struct data_union {
     bool type;
 
     union {
-        std::shared_ptr<dynamic_storage<word_t> > list;
+        dynamic_storage<word_t> list;
 
-        word_t number;
+        word_t number = 0;
+
+        //U(word_t const &number) : number(number) {}
+
+        //~U() {}
     };
 
     data_union();
 
     ~data_union();
 
-    data_union(data_union const &other) {};
+    data_union(data_union const &other) = default;
 
     data_union operator=(data_union const &other);
 
@@ -42,8 +46,6 @@ struct data_union {
 
     void resize(size_t);
 
-    void resize(size_t, word_t);
-
     void from_small_to_big();
 
     bool is_small_object() const;
@@ -51,7 +53,10 @@ struct data_union {
     friend bool operator==(data_union const &a, data_union const &b);
 
     friend bool operator<(data_union const &a, data_union const &b);
+
     friend bool operator>(data_union const &a, data_union const &b);
+
+    void reserve(size_t i, word_t i1);
 };
 
 #endif //BIGINT_DIGIT_LIST_H

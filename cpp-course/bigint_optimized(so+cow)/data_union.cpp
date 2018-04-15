@@ -11,33 +11,32 @@ data_union::data_union() {
 void data_union::push_back(size_t val) {
     if (is_small_object()) {
         from_small_to_big();
-    } else {
-        list->push_back(val);
     }
+    list.push_back(val);
 }
 
 void data_union::from_small_to_big() {
-    list.reset(new dynamic_storage<word_t>());
+    list = dynamic_storage<word_t>(number);
 }
 
 void data_union::pop_back() {
-    list->pop_back();
+    list.pop_back();
 }
 
 word_t data_union::back() const {
-    return list->back();
+    return list.back();
 }
 
 void data_union::reverse() {
-    std::reverse(list->begin(), list->end());
+    std::reverse(list.begin(), list.end());
+}
+
+void data_union::reserve(size_t n, word_t val) {
+    list.reserve(n, val);
 }
 
 void data_union::resize(size_t n) {
-    list->resize(n);
-}
-
-void data_union::resize(size_t n, word_t val) {
-    list->resize(n, val);
+    list.resize(n);
 }
 
 bool data_union::is_small_object() const {
@@ -49,7 +48,7 @@ word_t &data_union::operator[](size_t i) {
         assert(i == 0);
         return number;
     } else {
-        (*list)[i];
+        return list[i];
     }
 }
 
@@ -58,7 +57,7 @@ word_t data_union::operator[](size_t i) const {
         assert(i == 0);
         return number;
     } else {
-        (*list)[i];
+        return list[i];
     }
 }
 
@@ -70,24 +69,42 @@ data_union::data_union(word_t const &a) {
 data_union data_union::operator=(data_union const &other) {
     type = other.type;
     number = other.number;
+    return *this;
 }
 
-data_union::~data_union() {}
+data_union::~data_union() {
+    if (type == BIG) {
+        list.~dynamic_storage();
+    }
+}
 
 bool operator==(data_union const &a, data_union const &b) {
     if (a.type == SMALL && b.type == SMALL) {
         return a.number == b.number;
     } else if (a.type == BIG && a.type == BIG) {
-        return memcmp(a.list->begin(), b.list->begin(), a.list->size * sizeof(word_t)) == 0;
+        return a.list == b.list;
     } else {
         return a.type == SMALL;
     }
 }
 
 bool operator<(data_union const &a, data_union const &b) {
-    return false;
+    if (a.type == SMALL && b.type == SMALL) {
+        return a.number < b.number;
+    } else if (a.type == BIG && a.type == BIG) {
+        return a.list < b.list;
+    } else {
+        return a.type == SMALL;
+    }
 }
 
 bool operator>(data_union const &a, data_union const &b) {
-    return false;
+    if (a.type == SMALL && b.type == SMALL) {
+        return a.number > b.number;
+    } else if (a.type == BIG && a.type == BIG) {
+        return a.list > b.list;
+    } else {
+        return a.type == SMALL;
+    }
 }
+
