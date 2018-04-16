@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cassert>
 #include <gtest/gtest.h>
 
 #include "big_integer.h"
@@ -639,4 +638,11 @@ TEST(my_suite, division) {
     big_integer ab = a * b;
     big_integer q = ab / a;
     EXPECT_EQ(q, b);
+}
+
+TEST(my_suite, leak){
+    big_integer a = 20;
+    big_integer b = 5;
+
+    EXPECT_TRUE(a / b == 4);
 }

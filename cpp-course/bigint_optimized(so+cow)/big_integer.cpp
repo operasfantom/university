@@ -53,8 +53,12 @@ big_integer &big_integer::operator+=(big_integer const &rhs) {
         if (this->sign != rhs.sign) {
             sign = PLUS;
         } else {
-            data.push_back(simple_add(zero(), rhs.zero(), cf));
-            sign = get_significant_bit(data.back()) != 0 ? MINUS : PLUS;
+            if (this->sign == MINUS) {
+                sign = MINUS;
+            } else {
+                data.push_back(1);
+                sign = PLUS;
+            }
         }
     } else {
         sign ^= rhs.sign;
@@ -119,15 +123,14 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
         absolute_b *= scale;
     }
 
+
     big_integer dividend;
 
     for (size_t i = absolute_a.size(); i > 0; --i) { // dividend / divider = quotient
         big_integer &divider = absolute_b;
 
         dividend <<= SIZEOF_WORD_T;
-        dividend |= absolute_a.data[i - 1];
-
-        dividend.pop_leading_zeros();
+        dividend.data[0] = absolute_a.data[i - 1];
 
         if (dividend.size() < divider.size()) {
             result.data.push_back(0);
@@ -163,6 +166,8 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
         //assert(steps <= 2);
 
         result.data.push_back(static_cast<size_t>(guess));
+
+        //composition.pop_leading_zeros();
 
         dividend -= composition;
     }
@@ -225,6 +230,8 @@ big_integer &big_integer::operator<<=(int rhs) {
 
     std::fill(data.list.begin(), data.list.begin() + big_shift, 0);
 
+    pop_leading_zeros();
+
     return *this;
 }
 
@@ -244,7 +251,9 @@ big_integer &big_integer::operator>>=(int rhs) {
         data[i] = low_bits | high_bits;
     }
 
-    data.resize(size() - big_shift);
+    for (size_t i = 0; i < big_shift; ++i) {
+        data.pop_back();
+    }
 
     pop_leading_zeros();
 
@@ -263,7 +272,10 @@ big_integer big_integer::operator-() const {
 
 big_integer big_integer::operator~() const {
     if (is_small_object()) {
-        return ~data.number;
+        big_integer result;
+        result.data.number = ~data.number;
+        result.sign = !sign;
+        return result;
     }
 
     big_integer result = *this;
@@ -376,11 +388,17 @@ bool operator>=(big_integer const &a, big_integer const &b) {
 
 std::string to_string(big_integer const &a) {
     if (a.is_small_object()) {
-        return to_string(a.data.number);
+        if (a.sign == PLUS) {
+            return std::to_string(a.data.number);
+        } else {
+            return "-" + std::to_string(~a.data.number + 1);
+        }
     }
+
 
     std::string result;
     big_integer t = a;
+
 
     bool is_negative = (a.sign == MINUS);
     if (is_negative) {
@@ -425,7 +443,9 @@ void big_integer::pop_leading_zeros() {
         data.pop_back();
     }
 
-    transform_to_small_object();
+    if (size() == 1) {
+        transform_to_small_object();
+    }
 }
 
 word_t big_integer::at(size_t i) const {
@@ -474,20 +494,21 @@ bool big_integer::get_significant_bit(word_t word) {
 }
 
 void big_integer::reserve(size_t n) {
-    if (n > size()) {
-        transform_to_big_object();
-    } else {
+    if (n <= size()) {
         return;
+    }
+    if (is_small_object()) {
+        transform_to_big_object();
     }
     size_t new_size = std::max(size(), n);
 
     data.reserve(new_size, zero());
-}//TODO
+}
 
 void big_integer::change_sign() {
     if (is_small_object()) {
-        data.number = -data.number;
-        if (data.number != 0){
+        data.number = ~data.number + 1;
+        if (data.number != 0) {
             sign ^= true;
         }
         return;
@@ -507,16 +528,9 @@ bool big_integer::is_small_object() const {
 }
 
 void big_integer::transform_to_big_object() {
-    if (is_small_object()) {
-        dynamic_storage<word_t> tmp(data.number);
-        data.list = tmp;
-        data.type = BIG;
-    }
+    data.change_type();
 }
 
 void big_integer::transform_to_small_object() {
-    if (!is_small_object() && size() == 1){
-        data.number = data.list[0];
-        data.type = SMALL;
-    }
+    data.change_type();
 }

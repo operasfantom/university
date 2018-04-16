@@ -24,11 +24,11 @@ struct data_union {
 
     data_union();
 
+    data_union(data_union const &other);
+
     ~data_union();
 
-    data_union(data_union const &other) = default;
-
-    data_union operator=(data_union const &other);
+    data_union& operator=(data_union const &other);
 
     explicit data_union(word_t const &a);
 
@@ -57,6 +57,12 @@ struct data_union {
     friend bool operator>(data_union const &a, data_union const &b);
 
     void reserve(size_t i, word_t i1);
+
+    void change_type();
+
+    bool is_big_object() const;
+
+    size_t size();
 };
 
 #endif //BIGINT_DIGIT_LIST_H

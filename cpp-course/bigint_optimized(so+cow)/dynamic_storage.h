@@ -7,6 +7,7 @@
 #include "constants.h"
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 template<typename T>
 struct dynamic_storage {
@@ -16,30 +17,15 @@ struct dynamic_storage {
 
     T *data;
 
-    dynamic_storage() {
-        ref_counter = 1;
-        size = 1;
-        capacity = INITIAL_CAPACITY;
-        data = (T *) malloc(capacity * sizeof(T));
+    dynamic_storage();
 
-        data[0] = 0;
-    }
+    explicit dynamic_storage(T val);
 
-    explicit dynamic_storage(T val) {
-        /**this = dynamic_storage();*/
-        ref_counter = 1;
-        size = 1;
-        capacity = INITIAL_CAPACITY;
-        data = (T *) malloc(capacity * sizeof(T));
+    ~dynamic_storage();
 
-        data[0] = val;
-    }
+    dynamic_storage<T> &operator=(dynamic_storage<T> const &other);
 
-    ~dynamic_storage() {
-        //free(data);
-    }
-
-    dynamic_storage &operator=(dynamic_storage const &other) = default;
+    dynamic_storage(dynamic_storage const &other);
 
     void push_back(T val);
 
@@ -77,6 +63,9 @@ struct dynamic_storage {
 
     template<typename S>
     friend bool operator>(dynamic_storage<S> const &a, dynamic_storage<S> const &b);
+
+    void change_capacity(size_t);
+
 };
 
 #include "dynamic_storage.hpp"
