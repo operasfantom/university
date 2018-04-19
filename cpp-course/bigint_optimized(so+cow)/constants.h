@@ -22,4 +22,8 @@ const size_t HALF_SIZE = SIZEOF_WORD_T / 2;
 
 const size_t INITIAL_SIZE = 1;
 const size_t INITIAL_CAPACITY = 2;
+
+const bool SMALL = false;
+const bool BIG = true;
+
 #endif //BIGINT_CONSTANTS_H

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <functional>
-#include "data_union.h"
+#include "dynamic_storage.h"
 
 struct big_integer {
     big_integer();
@@ -73,7 +73,13 @@ struct big_integer {
 private:
     bool sign;
 
-    data_union data;
+    bool type;
+
+    union {
+        dynamic_storage<word_t> list;
+
+        word_t number = 0;
+    };
 
     void pop_leading_zeros();
 
@@ -93,11 +99,33 @@ private:
 
     void change_sign();
 
-    bool is_small_object()const;
-
     void transform_to_big_object();
 
     void transform_to_small_object();
+
+    bool is_big_object() const;
+
+    bool is_small_object() const;
+
+    word_t &operator[](size_t i);
+
+    word_t operator[](size_t i) const;
+
+    void push_back(size_t);
+
+    void pop_back();
+
+    word_t back() const;
+
+    void reverse();
+
+    void resize(size_t);
+
+    void reserve(size_t, word_t);
+
+    void change_type();
+
+    size_t size();
 };
 
 big_integer operator+(big_integer a, big_integer const &b);
@@ -135,7 +163,5 @@ bool operator>=(big_integer const &a, big_integer const &b);
 std::string to_string(big_integer const &a);
 
 std::ostream &operator<<(std::ostream &s, big_integer const &a);
-
-big_integer abs(big_integer const &a);
 
 #endif // BIG_INTEGER_H
