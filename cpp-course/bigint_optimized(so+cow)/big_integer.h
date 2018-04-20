@@ -3,7 +3,7 @@
 
 #include <string>
 #include <functional>
-#include "dynamic_storage.h"
+#include "big_data.h"
 
 struct big_integer {
     big_integer();
@@ -76,7 +76,7 @@ private:
     bool type;
 
     union {
-        dynamic_storage<word_t> list;
+        big_data<word_t> list;
 
         word_t number = 0;
     };
@@ -126,6 +126,8 @@ private:
     void change_type();
 
     size_t size();
+
+    void reallocate();
 };
 
 big_integer operator+(big_integer a, big_integer const &b);

@@ -2541,7 +2541,7 @@ class ThreadLocalValueHolderBase {
   virtual ~ThreadLocalValueHolderBase() {}
 };
 
-// Called by pthread to delete thread-local data stored by
+// Called by pthread to delete thread-local storage stored by
 // pthread_setspecific().
 extern "C" inline void DeleteThreadLocalValue(void* value_holder) {
   delete static_cast<ThreadLocalValueHolderBase*>(value_holder);
@@ -7295,7 +7295,7 @@ class FloatingPoint {
   }
 
  private:
-  // The data type used to store the actual floating-point number.
+  // The storage type used to store the actual floating-point number.
   union FloatingPointUnion {
     RawType value_;  // The raw floating-point number.
     Bits bits_;      // The bits that represent the number.
@@ -7763,7 +7763,7 @@ class ImplicitlyConvertible {
   // or MSVC refuses to compile the code.
  public:
   // MSVC warns about implicitly converting from double to int for
-  // possible loss of data, so we need to temporarily disable the
+  // possible loss of storage, so we need to temporarily disable the
   // warning.
 #ifdef _MSC_VER
 # pragma warning(push)          // Saves the current warning state.
@@ -9601,7 +9601,7 @@ inline void PrintTo(char* s, ::std::ostream* os) {
   PrintTo(ImplicitCast_<const char*>(s), os);
 }
 
-// signed/unsigned char is often used for representing binary data, so
+// signed/unsigned char is often used for representing binary storage, so
 // we print pointers to it as void* to be safe.
 inline void PrintTo(const signed char* s, ::std::ostream* os) {
   PrintTo(ImplicitCast_<const void*>(s), os);
@@ -19147,7 +19147,7 @@ class GTEST_API_ AssertHelper {
   void operator=(const Message& message) const;
 
  private:
-  // We put our data in a struct so that the size of the AssertHelper class can
+  // We put our storage in a struct so that the size of the AssertHelper class can
   // be as small as possible.  This is important because gcc is incapable of
   // re-using stack space even for temporary variables, so every EXPECT_EQ
   // reserves stack space for another AssertHelper.
@@ -19217,7 +19217,7 @@ class WithParamInterface {
 
   // The current parameter value. Is also available in the test fixture's
   // constructor. This member function is non-static, even though it only
-  // references static data, to reduce the opportunity for incorrect uses
+  // references static storage, to reduce the opportunity for incorrect uses
   // like writing 'WithParamInterface<bool>::GetParam()' for a test that
   // uses a fixture whose parameter type is int.
   const ParamType& GetParam() const {
@@ -19269,7 +19269,7 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 // FAIL and ASSERT_* are similar to ADD_FAILURE and EXPECT_*, except
 // that they will also abort the current function on failure.  People
 // usually want the fail-fast behavior of FAIL and ASSERT_*, but those
-// writing data-driven tests often find themselves using ADD_FAILURE
+// writing storage-driven tests often find themselves using ADD_FAILURE
 // and EXPECT_* more.
 
 // Generates a nonfatal failure with a generic message.

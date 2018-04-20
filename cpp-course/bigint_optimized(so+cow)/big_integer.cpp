@@ -4,38 +4,37 @@
 #include <algorithm>
 #include <deque>
 
-big_integer::big_integer() : sign(PLUS), type(SMALL), number(0) {}
+big_integer::big_integer() : sign(PLUS), type(SMALL_OBJECT), number(0) {}
 
 big_integer::big_integer(big_integer const &other) : sign(other.sign), type(other.type) {
     if (other.is_small_object()) {
         number = other.number;
     } else {
-        //list.~dynamic_storage();
         list = other.list;
     }
 }
 
 big_integer::~big_integer() {
     if (is_big_object()) {
-        list.~dynamic_storage();
+        list.~big_data();
     }
 }
 
-big_integer::big_integer(int a) : sign(a >= 0 ? PLUS : MINUS), type(SMALL), number(a) {}
+big_integer::big_integer(int a) : sign(a >= 0 ? PLUS : MINUS), type(SMALL_OBJECT), number(a) {}
 
 big_integer &big_integer::operator=(big_integer const &other) {
     if (type == other.type) {
         if (is_small_object()) { // S S
             number = other.number;
         } else { // B B
-            list.~dynamic_storage();
+            list.~big_data();
             list = other.list;
         }
     } else {
         if (is_small_object()) { // S B
             list = other.list;
         } else { // B S
-            list.~dynamic_storage();
+            list.~big_data();
             number = other.number;
         }
     }
@@ -44,7 +43,7 @@ big_integer &big_integer::operator=(big_integer const &other) {
     return *this;
 }
 
-big_integer::big_integer(word_t a) : sign(PLUS), type(SMALL), number(a) {}
+big_integer::big_integer(word_t a) : sign(PLUS), type(SMALL_OBJECT), number(a) {}
 
 big_integer::big_integer(std::string const &str) : big_integer() {
     bool new_sign = (str[0] == '-' ? MINUS : PLUS);
@@ -72,6 +71,8 @@ big_integer::big_integer(std::string const &str) : big_integer() {
 }
 
 big_integer &big_integer::operator+=(big_integer const &rhs) {
+    reallocate();
+
     align(rhs);
 
     word_t cf = 0;
@@ -100,6 +101,8 @@ big_integer &big_integer::operator+=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator-=(big_integer const &rhs) {
+    reallocate();
+
     *this += (-rhs);
 
     pop_leading_zeros();
@@ -108,6 +111,8 @@ big_integer &big_integer::operator-=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator*=(big_integer const &rhs) {
+    reallocate();
+
     bool result_sign = (this->sign) ^(rhs.sign);
 
     big_integer absolute_a = absolute(*this);
@@ -138,6 +143,8 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator/=(big_integer const &rhs) {
+    reallocate();
+
     bool result_sign = this->sign ^rhs.sign;
 
     big_integer absolute_a = absolute(*this);
@@ -185,15 +192,16 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
 
         composition *= divider;
 
-        //size_t steps = 0;
+        size_t steps = 0;
         while (guess > 0 && composition > dividend) {
             --guess;
             composition -= divider;
 
-            //steps++;
+            steps++;
+//            if (steps > 2) {
+//                throw std::runtime_error("STEPS");
+//            }
         }
-
-        //assert(steps <= 2);
 
         result.push_back(static_cast<size_t>(guess));
 
@@ -214,10 +222,14 @@ big_integer &big_integer::operator/=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator%=(big_integer const &rhs) {
+    reallocate();
+
     return *this -= *this / rhs * rhs;
 }
 
 big_integer &big_integer::operator&=(big_integer const &rhs) {
+    reallocate();
+
     std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a &= b; };
     apply_logic(rhs, f);
     this->sign &= rhs.sign;
@@ -225,6 +237,8 @@ big_integer &big_integer::operator&=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator|=(big_integer const &rhs) {
+    reallocate();
+
     std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a |= b; };
     apply_logic(rhs, f);
     this->sign |= rhs.sign;
@@ -232,6 +246,8 @@ big_integer &big_integer::operator|=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator^=(big_integer const &rhs) {
+    reallocate();
+
     std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a ^= b; };
     apply_logic(rhs, f);
     this->sign ^= rhs.sign;
@@ -239,6 +255,8 @@ big_integer &big_integer::operator^=(big_integer const &rhs) {
 }
 
 big_integer &big_integer::operator<<=(int rhs) {
+    reallocate();
+
     size_t big_shift = rhs / SIZEOF_WORD_T;
     size_t small_shift = rhs % SIZEOF_WORD_T;
     size_t inv_small_shift = SIZEOF_WORD_T - small_shift;
@@ -258,7 +276,9 @@ big_integer &big_integer::operator<<=(int rhs) {
 
     (*this)[big_shift] = at(0) << small_shift;
 
-    std::fill(list.begin(), list.begin() + big_shift, 0);
+    if (big_shift != 0) {
+        std::fill(list.begin(), list.begin() + big_shift, 0);
+    }
 
     pop_leading_zeros();
 
@@ -266,6 +286,8 @@ big_integer &big_integer::operator<<=(int rhs) {
 }
 
 big_integer &big_integer::operator>>=(int rhs) {
+    reallocate();
+
     size_t big_shift = rhs / SIZEOF_WORD_T;
     size_t small_shift = rhs % SIZEOF_WORD_T;
     size_t inv_small_shift = SIZEOF_WORD_T - small_shift;
@@ -308,7 +330,7 @@ big_integer big_integer::operator~() const {
         return result;
     }
 
-    big_integer result = *this;
+    big_integer result(*this);
     for (size_t i = 0; i < size(); ++i) {
         result[i] = ~result[i];
     }
@@ -331,7 +353,7 @@ big_integer &big_integer::operator--() {
 }
 
 big_integer big_integer::operator--(int) {
-    big_integer r = *this;
+    big_integer r(*this);
     --(*this);
     return r;
 }
@@ -380,12 +402,15 @@ bool operator==(big_integer const &a, big_integer const &b) {
     if (a.sign != b.sign) {
         return false;
     }
+    if (a.size() != b.size()) {
+        return false;
+    }
     if (a.is_small_object() && b.is_small_object()) {
         return a.number == b.number;
     } else if (a.is_big_object() && a.is_big_object()) {
         return a.list == b.list;
     } else {
-        return a.is_small_object();
+        return false;
     }
 }
 
@@ -414,10 +439,6 @@ bool operator<(big_integer const &a, big_integer const &b) {
 bool operator>(big_integer const &a, big_integer const &b) {
     if (a.sign != b.sign) {
         return a.sign == PLUS;
-    }
-
-    if (a.sign != b.sign) {
-        return a.sign == MINUS;
     }
 
     if (a.size() != b.size()) {
@@ -569,9 +590,11 @@ void big_integer::change_sign() {
         return;
     }
 
+    reallocate();
+
     sign ^= true;
     for (size_t i = 0; i < size(); ++i) {
-        (list)[i] = ~(list)[i];
+        list[i] = ~list[i];
     }
     ++(*this);
 
@@ -587,11 +610,11 @@ void big_integer::transform_to_small_object() {
 }
 
 bool big_integer::is_small_object() const {
-    return type == SMALL;
+    return type == SMALL_OBJECT;
 }
 
 bool big_integer::is_big_object() const {
-    return type == BIG;
+    return type == BIG_OBJECT;
 }
 
 word_t &big_integer::operator[](size_t i) {
@@ -662,10 +685,10 @@ void big_integer::reserve(size_t n, word_t val) {
 
 void big_integer::change_type() {
     if (is_small_object()) {
-        list = dynamic_storage<word_t>(number);
+        list = big_data<word_t>(number);
     } else {
         word_t tmp = list[0];
-        list.~dynamic_storage();
+        list.~big_data();
         number = tmp;
     }
     type ^= true;
@@ -676,5 +699,11 @@ size_t big_integer::size() {
         return 1;
     } else {
         return list.size;
+    }
+}
+
+void big_integer::reallocate() {
+    if (is_big_object()) {
+        list.reallocate();
     }
 }

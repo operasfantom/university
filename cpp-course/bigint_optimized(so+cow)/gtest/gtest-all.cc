@@ -304,21 +304,10 @@ class GTEST_API_ SingleFailureChecker {
 
 #endif  // GTEST_INCLUDE_GTEST_GTEST_SPI_H_
 
-#include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <wchar.h>
-#include <wctype.h>
 
 #include <algorithm>
-#include <iomanip>
-#include <limits>
-#include <ostream>  // NOLINT
-#include <sstream>
-#include <vector>
 
 #if GTEST_OS_LINUX
 
@@ -328,13 +317,9 @@ class GTEST_API_ SingleFailureChecker {
 
 # include <fcntl.h>  // NOLINT
 # include <limits.h>  // NOLINT
-# include <sched.h>  // NOLINT
 // Declares vsnprintf().  This header is not available on Windows.
-# include <strings.h>  // NOLINT
 # include <sys/mman.h>  // NOLINT
 # include <sys/time.h>  // NOLINT
-# include <unistd.h>  // NOLINT
-# include <string>
 
 #elif GTEST_OS_SYMBIAN
 # define GTEST_HAS_GETTIMEOFDAY_ 1
@@ -388,7 +373,6 @@ class GTEST_API_ SingleFailureChecker {
 #endif  // GTEST_OS_LINUX
 
 #if GTEST_HAS_EXCEPTIONS
-# include <stdexcept>
 #endif
 
 #if GTEST_CAN_STREAM_RESULTS_
@@ -450,20 +434,10 @@ class GTEST_API_ SingleFailureChecker {
 #endif  // GTEST_IMPLEMENTATION_
 
 #ifndef _WIN32_WCE
-# include <errno.h>
 #endif  // !_WIN32_WCE
-#include <stddef.h>
-#include <stdlib.h>  // For strtoll/_strtoul64/malloc/free.
-#include <string.h>  // For memmove.
-
-#include <algorithm>
-#include <string>
-#include <vector>
 
 
 #if GTEST_CAN_STREAM_RESULTS_
-# include <arpa/inet.h>  // NOLINT
-# include <netdb.h>  // NOLINT
 #endif
 
 #if GTEST_OS_WINDOWS
@@ -6537,21 +6511,12 @@ void InitGoogleTest(int* argc, wchar_t** argv) {
 #  include <crt_externs.h>
 # endif  // GTEST_OS_MAC
 
-# include <errno.h>
-# include <fcntl.h>
-# include <limits.h>
-
 # if GTEST_OS_LINUX
-#  include <signal.h>
 # endif  // GTEST_OS_LINUX
-
-# include <stdarg.h>
 
 # if GTEST_OS_WINDOWS
 #  include <windows.h>
 # else
-#  include <sys/mman.h>
-#  include <sys/wait.h>
 # endif  // GTEST_OS_WINDOWS
 
 # if GTEST_OS_QNX
@@ -6920,7 +6885,7 @@ void DeathTestImpl::ReadAndInterpretStatusByte() {
   char flag;
   int bytes_read;
 
-  // The read() here blocks until data is available (signifying the
+  // The read() here blocks until storage is available (signifying the
   // failure of the death test) or until the pipe is closed (signifying
   // its success), so it's okay to call this in the parent before
   // the child process has exited.
@@ -6963,7 +6928,7 @@ void DeathTestImpl::ReadAndInterpretStatusByte() {
 // calls _exit(1).
 void DeathTestImpl::Abort(AbortReason reason) {
   // The parent process considers the death test to be a failure if
-  // it finds any data in our pipe.  So, here we write a single flag byte
+  // it finds any storage in our pipe.  So, here we write a single flag byte
   // to the pipe, then exit.
   const char status_ch =
       reason == TEST_DID_NOT_DIE ? kDeathTestLived :
@@ -7002,7 +6967,7 @@ static ::std::string FormatDeathTestOutput(const ::std::string& output) {
 // Assesses the success or failure of a death test, using both private
 // members which have previously been set, and one argument:
 //
-// Private data members:
+// Private storage members:
 //   outcome:  An enumeration describing how the death test
 //             concluded: DIED, LIVED, THREW, or RETURNED.  The death test
 //             fails in the latter three cases.
@@ -7129,7 +7094,7 @@ class WindowsDeathTest : public DeathTestImpl {
 
 // Waits for the child in a death test to exit, returning its exit
 // status, or 0 if no child process exists.  As a side effect, sets the
-// outcome data member.
+// outcome storage member.
 int WindowsDeathTest::Wait() {
   if (!spawned())
     return 0;
@@ -7289,7 +7254,7 @@ ForkingDeathTest::ForkingDeathTest(const char* a_statement, const RE* a_regex)
 
 // Waits for the child in a death test to exit, returning its exit
 // status, or 0 if no child process exists.  As a side effect, sets the
-// outcome data member.
+// outcome storage member.
 int ForkingDeathTest::Wait() {
   if (!spawned())
     return 0;
@@ -7868,8 +7833,6 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
 // Authors: keith.ray@gmail.com (Keith Ray)
 
 
-#include <stdlib.h>
-
 #if GTEST_OS_WINDOWS_MOBILE
 # include <windows.h>
 #elif GTEST_OS_WINDOWS
@@ -7879,8 +7842,6 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
 // Symbian OpenC has PATH_MAX in sys/syslimits.h
 # include <sys/syslimits.h>
 #else
-# include <limits.h>
-# include <climits>  // Some Linux distributions define PATH_MAX here.
 #endif  // GTEST_OS_WINDOWS_MOBILE
 
 #if GTEST_OS_WINDOWS
@@ -8246,18 +8207,12 @@ void FilePath::Normalize() {
 // Author: wan@google.com (Zhanyong Wan)
 
 
-#include <limits.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #if GTEST_OS_WINDOWS_MOBILE
 # include <windows.h>  // For TerminateProcess()
 #elif GTEST_OS_WINDOWS
 # include <io.h>
 # include <sys/stat.h>
 #else
-# include <unistd.h>
 #endif  // GTEST_OS_WINDOWS_MOBILE
 
 #if GTEST_OS_MAC
@@ -9057,11 +9012,6 @@ const char* StringFromGTestEnv(const char* flag, const char* default_value) {
 // or void PrintTo(const Foo&, ::std::ostream*) in the namespace that
 // defines Foo.
 
-#include <ctype.h>
-#include <stdio.h>
-#include <ostream>  // NOLINT
-#include <string>
-
 namespace testing {
 
 namespace {
@@ -9350,7 +9300,7 @@ void PrintTo(const wchar_t* s, ostream* os) {
 // Prints a ::string object.
 #if GTEST_HAS_GLOBAL_STRING
 void PrintStringTo(const ::string& s, ostream* os) {
-  PrintCharsAsStringTo(s.data(), s.size(), os);
+  PrintCharsAsStringTo(s.storage(), s.size(), os);
 }
 #endif  // GTEST_HAS_GLOBAL_STRING
 
@@ -9361,7 +9311,7 @@ void PrintStringTo(const ::std::string& s, ostream* os) {
 // Prints a ::wstring object.
 #if GTEST_HAS_GLOBAL_WSTRING
 void PrintWideStringTo(const ::wstring& s, ostream* os) {
-  PrintCharsAsStringTo(s.data(), s.size(), os);
+  PrintCharsAsStringTo(s.storage(), s.size(), os);
 }
 #endif  // GTEST_HAS_GLOBAL_WSTRING
 

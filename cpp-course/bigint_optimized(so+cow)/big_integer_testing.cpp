@@ -646,3 +646,9 @@ TEST(my_suite, leak){
 
     EXPECT_TRUE(a / b == 4);
 }
+
+TEST(my_suite, steps_in_division){
+    big_integer a("9366441661081877030729724365019699990935648103849481612678022293070728142895079056");
+    big_integer b("340273744259540229090286510252512725358");
+    big_integer c = a / b;
+}
