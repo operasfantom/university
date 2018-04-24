@@ -1,0 +1,4 @@
+load:
+  - objectExpression.js
+test:
+  - test/objectExpressionTest.js
