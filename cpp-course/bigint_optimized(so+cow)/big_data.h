@@ -16,19 +16,19 @@ struct big_data {
 
     dynamic_storage<T> *storage;
 
-    big_data();
+    big_data() noexcept;
 
-    explicit big_data(T val);
+    explicit big_data(T val) noexcept;
 
     ~big_data();
 
-    big_data<T> &operator=(big_data<T> const &other);
+    big_data<T> &operator=(big_data<T> const &other) noexcept;
 
-    big_data(big_data const &other);
+    big_data(big_data const &other) noexcept;
 
     void push_back(T val);
 
-    void pop_back();
+    void pop_back() noexcept;
 
     const T *begin() const;
 
@@ -48,9 +48,9 @@ struct big_data {
 
     T &operator[](size_t);
 
-    void erase(size_t first, size_t last);
+    void erase(size_t first, size_t last) noexcept;
 
-    void resize(size_t);
+    void resize(size_t) noexcept;
 
     void reserve(size_t, T);
 
@@ -68,6 +68,6 @@ struct big_data {
     void reallocate();
 };
 
-#include "big_data.hpp"
+#include "big_data.ipp"
 
 #endif //BIGINT_BIG_DATA_H

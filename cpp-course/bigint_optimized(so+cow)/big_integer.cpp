@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <deque>
 
-big_integer::big_integer() : sign(PLUS), type(SMALL_OBJECT), number(0) {}
+big_integer::big_integer() noexcept  : sign(PLUS), type(SMALL_OBJECT), number(0) {}
 
-big_integer::big_integer(big_integer const &other) : sign(other.sign), type(other.type) {
+big_integer::big_integer(big_integer const &other) noexcept : sign(other.sign), type(other.type) {
     if (other.is_small_object()) {
         number = other.number;
     } else {
@@ -20,9 +20,9 @@ big_integer::~big_integer() {
     }
 }
 
-big_integer::big_integer(int a) : sign(a >= 0 ? PLUS : MINUS), type(SMALL_OBJECT), number(a) {}
+big_integer::big_integer(int a) noexcept : sign(a >= 0 ? PLUS : MINUS), type(SMALL_OBJECT), number(a) {}
 
-big_integer &big_integer::operator=(big_integer const &other) {
+big_integer &big_integer::operator=(big_integer const &other) noexcept {
     if (type == other.type) {
         if (is_small_object()) { // S S
             number = other.number;
@@ -43,7 +43,7 @@ big_integer &big_integer::operator=(big_integer const &other) {
     return *this;
 }
 
-big_integer::big_integer(word_t a) : sign(PLUS), type(SMALL_OBJECT), number(a) {}
+big_integer::big_integer(word_t a) noexcept : sign(PLUS), type(SMALL_OBJECT), number(a) {}
 
 big_integer::big_integer(std::string const &str) : big_integer() {
     bool new_sign = (str[0] == '-' ? MINUS : PLUS);
@@ -467,7 +467,7 @@ std::string to_string(big_integer const &a) {
         if (a.sign == PLUS) {
             return std::to_string(a.number);
         } else {
-            return "-" + std::to_string(~a.number + 1);
+            return "-" + std::to_string(two_s_complement(a.number));
         }
     }
 
@@ -583,7 +583,7 @@ void big_integer::reserve(size_t n) {
 
 void big_integer::change_sign() {
     if (is_small_object()) {
-        number = ~number + 1;
+        number = two_s_complement(number);
         if (number != 0) {
             sign ^= true;
         }

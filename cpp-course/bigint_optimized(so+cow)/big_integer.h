@@ -6,19 +6,19 @@
 #include "big_data.h"
 
 struct big_integer {
-    big_integer();
+    big_integer() noexcept;
 
-    big_integer(big_integer const &other);
+    big_integer(big_integer const &other) noexcept;
 
-    big_integer(int);
+    big_integer(int) noexcept;
 
     big_integer(std::string const &str);
 
-    big_integer(word_t a);
+    big_integer(word_t a) noexcept;
 
     ~big_integer();
 
-    big_integer &operator=(big_integer const &other);
+    big_integer &operator=(big_integer const &other) noexcept;
 
     big_integer &operator+=(big_integer const &rhs);
 

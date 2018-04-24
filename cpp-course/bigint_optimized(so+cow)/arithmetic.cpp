@@ -12,3 +12,6 @@ word_t simple_mul(word_t a, word_t b, word_t &cf) {
     return static_cast<word_t>(t);
 }
 
+word_t two_s_complement(word_t const &x){
+    return ~x + 1;
+}
