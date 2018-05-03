@@ -32,10 +32,6 @@ TestCase("UnitTest", {
         );
         assertEquals(7, expr.evaluate(5));
     },
-    "test parse": function () {
-        var expr = parse('x 2 +');
-        assertEquals(7, console.log(expr.evaluate(5)));
-    },
     "test diff": function () {
         var expr = new Add(new Variable('x'), new Const(2)).diff('x');
         assertEquals(1, expr.evaluate(5));
@@ -66,5 +62,8 @@ TestCase("UnitTest", {
     "test simplify": function () {
         var expr = new Variable(0).simplify();
         console.log(expr.toString());
+    },
+    "test log sumplify": function () {
+        var expr = new Power(new Variable("x"), new Variable("y")).diff('x').simplify()
     }
 });

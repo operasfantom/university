@@ -44,7 +44,7 @@ function areConstants() {
 }
 
 function unionConstants(operation, a, b) {
-    var F = creator(operation).apply(null, null);
+    var F = factory(operation).apply(null, null);
     return new Const(F.operation(a.value, b.value));
 }
 
@@ -53,6 +53,27 @@ function equalConstants(a, b) {
         return a.value === b.value;
     }
     return false;
+}
+
+function equalClasses(a, b) {
+    if (typeof a !== typeof b) {
+        return false;
+    }
+    if (a instanceof Const) {
+        return a.value === b.value;
+    }
+    if (a instanceof Variable) {
+        return a.name === b.name;
+    }
+    if (a.args.length !== b.args.length) {
+        return false;
+    }
+    for (var i = 0; i < a.args.length; ++i) {
+        if (!equalClasses(a.args[i], b.args[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function Const(value) {
@@ -66,7 +87,7 @@ Const.prototype.evaluate = function () {
 };
 
 Const.prototype.toString = function () {
-    return this.value.toString();
+    return this.value.toPrecision();
 };
 
 Const.prototype.diff = function () {
@@ -135,7 +156,6 @@ var Add = Operation(
 
 var Subtract = Operation(
     function (a, b) {
-        // console.log(a, b);
         return a - b;
     },
     "-",
@@ -186,13 +206,18 @@ var Multiply = Operation(
         if (equalConstants(res1, ONE)) {
             return res0;
         }
+        if (res1 instanceof Divide && areConstants(res1.args[0]) && res1.args[0].value === 1) { //(a * b) * (1 / c)
+            return new Divide(res0, res1.args[1]);
+        }
+        if (res0 instanceof Divide && areConstants(res0.args[0]) && res0.args[0].value === 1) { //(1 / c) * (a * b)
+            return new Divide(res1, res0.args[1]);
+        }
         return new Multiply(res0, res1);
     }
 );
 
 var Divide = Operation(
     function (a, b) {
-        // console.log(a, b);
         return a / b;
     },
     "/",
@@ -202,7 +227,7 @@ var Divide = Operation(
                 new Multiply(this.args[0].diff(c), this.args[1]),
                 new Multiply(this.args[0], this.args[1].diff(c))
             ),
-            new Multiply(this.args[1], this.args[1])
+            new Square(this.args[1])
         )
     },
     function () {
@@ -216,6 +241,52 @@ var Divide = Operation(
 
         if (equalConstants(res0, ZERO)) {
             return ZERO;
+        }
+        if (res0 instanceof Divide && res1 instanceof Square) {
+            if (equalClasses(res0.args[0], res1.args[0])) { //(a / b) / square(a)
+                return new Divide(ONE, new Multiply(res0.args[1], res1.args[0]));
+            }
+        }
+        if (res0 instanceof Divide) {
+            if (res1 instanceof Multiply) {
+                if (equalClasses(res0.args[0], res1.args[0])) { //(a / b) / (a * c)
+                    return new Divide(ONE, new Multiply(res0.args[1], res1.args[1]));
+                }
+                if (equalClasses(res0.args[0], res1.args[1])) { //(a / b) / (c * a)
+                    return new Divide(ONE, new Multiply(res0.args[1], res1.args[0]));
+                }
+            }
+        }
+        if (res0 instanceof Multiply) {
+            if (equalClasses(res0.args[0], res1)) { //(a * b) / a
+                return res0.args[1];
+            }
+            if (equalClasses(res0.args[1], res1)) { //(a * b) / b
+                return res0.args[0];
+            }
+            if (res1 instanceof Square) {
+                if (equalClasses(res0.args[0], res1.args[0])) { //(a * b) / a^2
+                    return new Divide(res0.args[1], res1.args[0]);
+                }
+                if (equalClasses(res0.args[1], res1.args[0])) { //(a * b) / b^2
+                    return new Divide(res0.args[0], res1.args[0]);
+                }
+            }
+            if (res1 instanceof Multiply){
+                for (var i = 0; i < 2; ++i){
+                    for (var j = 0; j < 2; ++j){
+                        if (equalClasses(res0.args[i], res1.args[j])){
+                            return new Divide(res0.args[i ^ 1], res1.args[j ^ 1]).simplify();
+                        }
+                    }
+                }
+            }
+        }
+        if (res0 instanceof Negate){
+            return new Negate(new Divide(res0.args[0], res1).simplify());
+        }
+        if (res1 instanceof Negate){
+            return new Negate(new Divide(res0, res1.args[0]).simplify());
         }
         return new Divide(res0, res1);
     }
@@ -231,8 +302,27 @@ var Negate = Operation(
     },
     function () {
         var res = this.args[0].simplify();
-        if (res instanceof Const) {
+        if (areConstants(res)) {
             return new Const(-res.value);
+        }
+        if (res instanceof Subtract) {
+            return new Subtract(res.args[1], res.args[0]).simplify();
+        }
+        if (res instanceof Divide) {
+            if (areConstants(res.args[0])) {
+                return new Divide(new Negate(res.args[0]), res.args[1]).simplify();
+            }
+            if (areConstants(res.args[1])) {
+                return new Divide(res.args[0], new Negate(res.args[1])).simplify();
+            }
+        }
+        if (res instanceof Multiply) {
+            if (areConstants(res.args[0])) {
+                return new Multiply(new Negate(res.args[0]), res.args[1]).simplify();
+            }
+            if (areConstants(res.args[1])) {
+                return new Multiply(res.args[0], new Negate(res.args[1])).simplify();
+            }
         }
         return new Negate(res);
     }
@@ -253,20 +343,17 @@ var Square = Operation(
         )
     },
     function () {
-        return this;
-    }
-);
-
-var Sign = Operation(
-    function (a) {
-        return a >= 0 ? +1 : -1;
-    },
-    "sign",
-    function (c) {
-        return 0;
-    },
-    function () {
-        //return new Const(Math.sign(this.args[0].evaluate()));//TODO
+        var res0 = this.args[0].simplify();
+        if (areConstants(res0)) {
+            return new Const(Math.pow(res0.value, 2));
+        }
+        if (res0.toString().length <= 4) {
+            return new Multiply(res0, res0).simplify();
+        }
+        if (res0 instanceof Negate){
+            return res0.args[0].simplify()
+        }
+        return new Square(res0);
     }
 );
 
@@ -278,12 +365,12 @@ var Abs = Operation(
     function (c) {
         return new Multiply(
             this.args[0].diff(c),
-            new Sign(this.args[0])
+            new Divide(
+                this.args[0],
+                new Square(new Sqrt(this.args[0]))
+            )
         )
-    },
-    function () {
-        return this
-    }//TODO
+    }
 );
 
 var Sqrt = Operation(
@@ -293,7 +380,7 @@ var Sqrt = Operation(
     "sqrt",
     function (c) {
         return new Divide(
-            new Abs(this.args[0]).diff(c),
+            (new Abs(this.args[0])).diff(c),
             new Multiply(
                 new Const(2),
                 this
@@ -301,7 +388,11 @@ var Sqrt = Operation(
         )
     },
     function () {
-        return this;
+        var res0 = this.args[0].simplify();
+        if (areConstants(res0)) {
+            return unionConstants(Sqrt, res0);
+        }
+        return new Sqrt(res0);
     }
 );
 
@@ -330,13 +421,20 @@ var Power = Operation(
                 this,
                 new Multiply(
                     this.args[1].diff(c),
-                    new Ln(this.args[0])
+                    new Log(
+                        new Const(Math.E),
+                        this.args[0]
+                    )
                 )
             )
         )
     },
     function () {
-        return this;
+        var res0 = this.args[0].simplify(), res1 = this.args[1].simplify();
+        if (areConstants(res0, res1)) {
+            return unionConstants(Power, res0, res1);
+        }
+        return new Power(res0, res1);
     }
 );
 
@@ -347,8 +445,8 @@ var Ln = Operation(
     "ln",
     function (c) {
         return new Divide(
-            new Abs(this.args[0]).diff(c),
-            new Abs(this.args[0])
+            this.args[0].diff(c),
+            this.args[0]
         )
     }
 );
@@ -359,17 +457,36 @@ var Log = Operation(
     },
     "log",
     function (c) {
-        return new Divide(
+        /*return new Divide(
             new Ln(this.args[1]),
             new Ln(this.args[0])
-        ).diff(c)
+        ).diff(c)*/
+        var argln = [
+            new Ln(this.args[1]),
+            new Ln(this.args[0])
+        ];
+        var arglog2 = [
+            new Log(new Const(2), this.args[1]),
+            new Log(new Const(2), this.args[0])
+        ];
+        return new Divide(
+            new Subtract(
+                new Multiply(argln[0].diff(c), arglog2[1]),
+                new Multiply(arglog2[0], argln[1].diff(c))
+            ),
+            new Multiply(arglog2[1], new Log(new Const(Math.E), this.args[0]))
+        )
     },
     function () {
-        return this;
+        var res0 = this.args[0].simplify(), res1 = this.args[1].simplify();
+        if (areConstants(res0, res1)) {
+            return unionConstants(Log, res0, res1);
+        }
+        return new Log(res0, res1);
     }
 );
 
-function creator(operation) {
+function factory(operation) {
     function F(args) {
         operation.apply(this, args);
     }
@@ -384,12 +501,11 @@ function creator(operation) {
 function parse(s) {
     var arr = s.split(/\s+/);
 
-    //console.log(arr);
     function step(stack, token) {
 
         function apply(f, n) {
             var args = stack.splice(-n, n);
-            stack.push(creator(f).apply(null, args));
+            stack.push(factory(f).apply(null, args));
         }
 
         switch (token) {
@@ -435,12 +551,13 @@ function parse(s) {
     return arr.reduce(step, [])[0]
 }
 
-
 function test() {
-    var expr = parse('x y + sqrt').diff('x');
+    var expr = parse('2 4 x z - * + 1 2 y z - * + log').diff('y').simplify();
+    // var expr = parse('x y log').diff('x');
     console.log(expr.toString());
-    expr = expr.simplify()
+    expr = expr.simplify();
     console.log(expr.toString());
+    console.log(expr.evaluate(2, 3, 2))
 }
 
 // test();
