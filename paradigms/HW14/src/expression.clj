@@ -93,7 +93,6 @@
    :toString (fn [this] (str "(" (_symbol this) " " (clojure.string/join " " (map toString (_getArgs this))) ")"))
    :evaluate (fn [this vars]
                (apply (_op this) (map (fn [x] (evaluate x vars)) (_getArgs this)))
-               ;(map (fn [x] (evaluate x vars)) (_getArgs this))
                )
    :getArgs  (partial _args)
    })
@@ -102,59 +101,107 @@
 
 ;------------------------------
 
+(def Add
+  (partial Operation
+           +
+           "+"
+           (fn [this var] (apply Add (map (fn [e] (diff e var)) (_getArgs this))))
+           ))
 
-(defn Add [& args]
-  (apply Operation
-         +
-         "+"
-         (fn [this var] (apply Add (map (fn [e] (diff e var)) (_getArgs this))))
-         args
-         ))
+(def Subtract
+  (partial Operation
+           -
+           "-"
+           (fn [this var] (apply Subtract (map (fn [e] (diff e var)) (_getArgs this))))
+           ))
 
-(defn Subtract [& args]
-  (apply Operation
-         -
-         "-"
-         (fn [this var] (apply Subtract (map (fn [e] (diff e var)) (_getArgs this))))
-         args
-         ))
-
-(defn Multiply [& args]
-  (apply Operation
-         *
-         "*"
-         (fn [this var] (let [u (nth (_getArgs this) 0)
-                              v (nth (_getArgs this) 1)]
-                          (Add
-                            (Multiply v (diff u var))
-                            (Multiply u (diff v var))
-                            )))
-         args
-         ))
-
-(defn Divide [& args]
-  (apply Operation
-         (fn [^double x ^double y] (/ x y))
-         "/"
-         (fn [this var] (let [u (nth (_getArgs this) 0)
-                              v (nth (_getArgs this) 1)]
-                          (Divide
-                            (Subtract
+(def Multiply
+  (partial Operation
+           *
+           "*"
+           (fn [this var] (let [u (nth (_getArgs this) 0)
+                                v (nth (_getArgs this) 1)]
+                            (Add
                               (Multiply v (diff u var))
                               (Multiply u (diff v var))
-                              )
-                            (Multiply v v)
-                            )))
-         args
-         ))
+                              )))
+           ))
 
-(defn Negate [& args]
-  (apply Operation
-         -
-         "negate"
-         (fn [this var] (Negate (diff (first (_getArgs this)) var)))
-         args
-         ))
+(def Divide
+  (partial Operation
+           (fn [^double x ^double y] (/ x y))
+           "/"
+           (fn [this var] (let [u (nth (_getArgs this) 0)
+                                v (nth (_getArgs this) 1)]
+                            (Divide
+                              (Subtract
+                                (Multiply v (diff u var))
+                                (Multiply u (diff v var))
+                                )
+                              (Multiply v v)
+                              )))
+           ))
+
+;------------------------------
+
+(def _arg (field :arg))
+(def _getArg (method :getArg))
+
+(defn Function-assoc [this op symbol diff arg]
+  (assoc this
+    :op op
+    :symbol symbol
+    :diff diff
+    :arg arg
+    ))
+
+(def FunctionPrototype
+  {
+   :toString (fn [this] (str "(" (_symbol this) " " (toString (_getArg this)) ")"))
+   :evaluate (fn [this vars]
+               ((_op this) (evaluate (_getArg this) vars))
+               )
+   :getArg   (partial _arg)
+   })
+
+(def Function (constructor Function-assoc FunctionPrototype))
+
+;------------------------------
+
+(def Negate
+  (partial Function
+           -
+           "negate"
+           (fn [this var] (Negate (diff (_getArg this) var)))
+           ))
+
+(declare Sin)
+(declare Cos)
+
+
+(def Sin
+  (partial Function
+           (fn [x] (Math/sin x))
+           "sin"
+           (fn [this var]
+             (let [u (_getArg this)]
+               (Multiply
+                 (Cos u)
+                 (diff u var)
+                 )))
+           ))
+
+(def Cos
+  (partial Function
+           (fn [x] (Math/cos x))
+           "cos"
+           (fn [this var]
+             (let [u (_getArg this)]
+               (Multiply
+                 (Negate (Sin u))
+                 (diff u var)
+                 )))
+           ))
 
 (def symbol-to-binary-operation
   {
@@ -163,6 +210,8 @@
    '*      Multiply
    '/      Divide
    'negate Negate
+   'sin    Sin
+   'cos    Cos
    })
 
 (defn parseObject [s]
@@ -173,3 +222,51 @@
       :else (let [op (first e) args (rest e)] (apply (get symbol-to-binary-operation op) (map parse args)))
       ))
   (parse (read-string s)))
+
+(defn parse-recur [lst predicates]
+  (if (empty? predicates)
+    (
+      let [x (read-string (first lst))]
+      (if (number? x)
+        (Constant x)
+        (Variable x)
+        ))
+    (
+      let [expr (partition-by (first predicates) lst)
+           calc (fn [expr] (parse-recur expr (rest predicates)))]
+      (reduce
+        (fn [acc pair]
+          (
+            let [op (get symbol-to-binary-operation (read-string (first (first pair))))
+                 rhs (calc (last pair))]
+            (op acc rhs)
+            ))
+        (calc (first expr)) (partition 2 (rest expr)))
+      )
+    ))
+
+(defn in? [coll] (fn [x] (.contains coll x)))
+
+(require '[clojure.string :as str])
+
+(defn parseObjectInfix [s]
+  (parse-recur
+    (str/split s #" ")
+    (vector
+      (in? ["+" "-"])
+      (in? ["*" "/"])
+      ;(in? ["sin" "cos"])
+      ))
+  )
+
+(defn check [s] (
+                  let [expr (parseObjectInfix s)]
+                  (println (toString expr))
+                  ))
+
+;(check "1.0 + 2.0 * 3.0 - 4.0")
+;(check "1 / 2 * 3")
+;(check "1 * 2 * 3 * 4 * 5")
+;(check "1 - 2 - 3 - 4 - 5")
+;(check "sin 1")
+;(check "sin 1 * sin 1 + cos 1 * cos 1")
