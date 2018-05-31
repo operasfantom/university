@@ -4,8 +4,8 @@
 #include <ostream>
 #include <vector>
 
-//const size_t SYMBOLS = std::numeric_limits<wchar_t>::max();
-const size_t SYMBOLS = 512;
+//const size_t SYMBOLS = std::numeric_limits<huffman_tree::symbol_t>::max();
+const size_t SYMBOLS = 256;
 
 template <typename S>
 struct Node {
@@ -17,7 +17,8 @@ struct Node {
     Node() = default;
 
     explicit Node(Node *first, Node *second) : left(first), right(second) {
-        val = left->val + right->val;
+        if (left) val += left->val;
+        if (right) val += right->val;
     }
 
     explicit Node(S symbol, int64_t val) : val(val), symbol(symbol) {}
@@ -28,9 +29,10 @@ struct Node {
 };
 
 class huffman_tree {
-    typedef wchar_t symbol_t;
-    typedef std::wstring string_t;
-
+public:
+    typedef char symbol_t;
+    typedef std::basic_string<symbol_t> string_t;
+private:
     std::vector<int64_t> cnt;
     std::vector<string_t> code;
 
@@ -41,7 +43,7 @@ class huffman_tree {
 
     void dfs(Node<symbol_t> *vertex, string_t &current_code, string_t &dictionary, string_t &path);
 
-    void build_tree(Node<symbol_t> *vertex, wchar_t *&, wchar_t *&);
+    void build_tree(Node<symbol_t> *vertex, symbol_t *&, symbol_t *&);
 
     void delete_tree(Node<symbol_t>* vertex);
 
@@ -49,6 +51,11 @@ class huffman_tree {
 
     Node<symbol_t>* current_node = nullptr;
 
+    struct compare_nodes{
+        bool operator()(Node<symbol_t> *first, Node<symbol_t> *second){
+            return first->val > second->val;
+        }
+    };
 public:
 
     huffman_tree();
@@ -71,7 +78,7 @@ public:
 
     void decoding();
 
-    std::pair<wchar_t, bool> transition(symbol_t c);
+    std::pair<symbol_t, bool> transition(symbol_t c);
 
 };
 
