@@ -8,7 +8,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/library)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-add_library(huffman-library STATIC library/huffman_tree.cpp library/huffman_tree.h tests/testing.cpp)
+add_library(huffman-library STATIC library/huffman_tree.cpp library/huffman_tree.h tests/testing.cpp library/binary_io.cpp library/binary_io.h library/bit_container.cpp library/bit_container.h)
 
 add_executable(huffman-utility
         utility/utility.cpp)

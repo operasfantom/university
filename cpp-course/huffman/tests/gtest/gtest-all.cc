@@ -1234,7 +1234,7 @@ class GTEST_API_ UnitTestImpl {
   // Points to (but doesn't own) the global test part result reporter.
   TestPartResultReporterInterface* global_test_part_result_repoter_;
 
-  // Protects read and write access to global_test_part_result_reporter_.
+  // Protects read_symbol and write access to global_test_part_result_reporter_.
   internal::Mutex global_test_part_result_reporter_mutex_;
 
   // Points to (but doesn't own) the per-thread test part result reporter.
@@ -1750,7 +1750,7 @@ GTEST_DEFINE_bool_(
 GTEST_DEFINE_int32_(
     stack_trace_depth,
     internal::Int32FromGTestEnv("stack_trace_depth", kMaxStackTraceDepth),
-    "The maximum number of stack frames to print when an "
+    "The maximum number of stack frames to print_extended_string when an "
     "assertion fails.  The valid range is 0 through 100, inclusive.");
 
 GTEST_DEFINE_string_(
@@ -2529,7 +2529,7 @@ AssertionResult DoubleNearPredFormat(const char* expr1,
   const double diff = fabs(val1 - val2);
   if (diff <= abs_error) return AssertionSuccess();
 
-  // TODO(wan): do not print the value of an expression if it's
+  // TODO(wan): do not print_extended_string the value of an expression if it's
   // already a literal.
   return AssertionFailure()
       << "The difference between " << expr1 << " and " << expr2
@@ -6029,7 +6029,7 @@ void UnitTestImpl::ListTestsMatchingFilter() {
           printf("%s.", test_case->name());
           if (test_case->type_param() != NULL) {
             printf("  # %s = ", kTypeParamLabel);
-            // We print the type parameter on a single line to make
+            // We print_extended_string the type parameter on a single line to make
             // the output easy to parse by a program.
             PrintOnOneLine(test_case->type_param(), kMaxParamLength);
           }
@@ -6038,7 +6038,7 @@ void UnitTestImpl::ListTestsMatchingFilter() {
         printf("  %s", test_info->name());
         if (test_info->value_param() != NULL) {
           printf("  # %s = ", kValueParamLabel);
-          // We print the value parameter on a single line to make the
+          // We print_extended_string the value parameter on a single line to make the
           // output easy to parse by a program.
           PrintOnOneLine(test_info->value_param(), kMaxParamLength);
         }
@@ -6245,7 +6245,7 @@ bool ParseStringFlag(const char* str, const char* flag, std::string* value) {
 // Determines whether a string has a prefix that Google Test uses for its
 // flags, i.e., starts with GTEST_FLAG_PREFIX_ or GTEST_FLAG_PREFIX_DASH_.
 // If Google Test detects that a command line flag has its prefix but is not
-// recognized, it will print its help message. Flags starting with
+// recognized, it will print_extended_string its help message. Flags starting with
 // GTEST_INTERNAL_PREFIX_ followed by "internal_" are considered Google Test
 // internal flags and do not trigger the help message.
 static bool HasGoogleTestFlagPrefix(const char* str) {
@@ -6272,7 +6272,7 @@ static void PrintColorEncoded(const char* str) {
   GTestColor color = COLOR_DEFAULT;  // The current color.
 
   // Conceptually, we split the string into segments divided by escape
-  // sequences.  Then we print one segment at a time.  At the end of
+  // sequences.  Then we print_extended_string one segment at a time.  At the end of
   // each iteration, the str pointer advances to the beginning of the
   // next segment.
   for (;;) {
@@ -6331,7 +6331,7 @@ static const char kColorEncodedHelpMessage[] =
 "  @G--" GTEST_FLAG_PREFIX_ "color=@Y(@Gyes@Y|@Gno@Y|@Gauto@Y)@D\n"
 "      Enable/disable colored output. The default is @Gauto@D.\n"
 "  -@G-" GTEST_FLAG_PREFIX_ "print_time=0@D\n"
-"      Don't print the elapsed time of each test.\n"
+"      Don't print_extended_string the elapsed time of each test.\n"
 "  @G--" GTEST_FLAG_PREFIX_ "output=xml@Y[@G:@YDIRECTORY_PATH@G"
     GTEST_PATH_SEP_ "@Y|@G:@YFILE_PATH]@D\n"
 "      Generate an XML report in the given directory or with the given file\n"
@@ -6361,7 +6361,7 @@ static const char kColorEncodedHelpMessage[] =
     "color=no@D or set\n"
 "the @G" GTEST_FLAG_PREFIX_UPPER_ "COLOR@D environment variable to @Gno@D.\n"
 "\n"
-"For more information, please read the " GTEST_NAME_ " documentation at\n"
+"For more information, please read_symbol the " GTEST_NAME_ " documentation at\n"
 "@G" GTEST_PROJECT_URL_ "@D. If you find a bug in " GTEST_NAME_ "\n"
 "(not one in your own code or tests), please report it to\n"
 "@G<" GTEST_DEV_EMAIL_ ">@D.\n";
@@ -6431,7 +6431,7 @@ void ParseGoogleTestFlagsOnlyImpl(int* argc, CharType** argv) {
   }
 
   if (g_help_flag) {
-    // We print the help here instead of in RUN_ALL_TESTS(), as the
+    // We print_extended_string the help here instead of in RUN_ALL_TESTS(), as the
     // latter may not be called at all if the user is using Google
     // Test with another testing framework.
     PrintColorEncoded(kColorEncodedHelpMessage);
@@ -6799,10 +6799,10 @@ std::string GetLastErrnoDescription() {
     return errno == 0 ? "" : posix::StrError(errno);
 }
 
-// This is called from a death test parent process to read a failure
+// This is called from a death test parent process to read_symbol a failure
 // message from the death test child process and log it with the FATAL
-// severity. On Windows, the message is read from a pipe handle. On other
-// platforms, it is read from a file descriptor.
+// severity. On Windows, the message is read_symbol from a pipe handle. On other
+// platforms, it is read_symbol from a file descriptor.
 static void FailFromInternalError(int fd) {
   Message error;
   char buffer[256];
@@ -6902,7 +6902,7 @@ class DeathTestImpl : public DeathTest {
   int status_;
   // How the death test concluded.
   DeathTestOutcome outcome_;
-  // Descriptor to the read end of the pipe to the child process.  It is
+  // Descriptor to the read_symbol end of the pipe to the child process.  It is
   // always -1 in the child process.  The child keeps its write end of the
   // pipe in write_fd_.
   int read_fd_;
@@ -6920,7 +6920,7 @@ void DeathTestImpl::ReadAndInterpretStatusByte() {
   char flag;
   int bytes_read;
 
-  // The read() here blocks until data is available (signifying the
+  // The read_symbol() here blocks until data is available (signifying the
   // failure of the death test) or until the pipe is closed (signifying
   // its success), so it's okay to call this in the parent before
   // the child process has exited.
@@ -7090,7 +7090,7 @@ bool DeathTestImpl::Passed(bool status_ok) {
 // 4. Now the parent can release the write end of the pipe on its side. If
 //    this is done before step 3, the object's reference count goes down to
 //    0 and it is destroyed, preventing the child from acquiring it. The
-//    parent now has to release it, or read operations on the read end of
+//    parent now has to release it, or read operations on the read_symbol end of
 //    the pipe will not return when the child terminates.
 // 5. The parent reads child's output through the pipe (outcome code and
 //    any possible error messages) from the pipe, and its stderr and then
@@ -7414,7 +7414,7 @@ class Arguments {
 // threadsafe-style death test process.
 struct ExecDeathTestArgs {
   char* const* argv;  // Command-line arguments for the child's call to exec
-  int close_fd;       // File descriptor to close; the read end of a pipe
+  int close_fd;       // File descriptor to close; the read_symbol end of a pipe
 };
 
 #  if GTEST_OS_MAC
@@ -8816,12 +8816,12 @@ std::string CapturedStream::ReadEntireFile(FILE* file) {
   const size_t file_size = GetFileSize(file);
   char* const buffer = new char[file_size];
 
-  size_t bytes_last_read = 0;  // # of bytes read in the last fread()
-  size_t bytes_read = 0;       // # of bytes read so far
+  size_t bytes_last_read = 0;  // # of bytes read_symbol in the last fread()
+  size_t bytes_read = 0;       // # of bytes read_symbol so far
 
   fseek(file, 0, SEEK_SET);
 
-  // Keeps reading the file until we cannot read further or the
+  // Keeps reading the file until we cannot read_symbol further or the
   // pre-determined file size is reached.
   do {
     bytes_last_read = fread(buffer+bytes_read, 1, file_size-bytes_read, file);
@@ -9046,7 +9046,7 @@ const char* StringFromGTestEnv(const char* flag, const char* default_value) {
 
 // Google Test - The Google C++ Testing Framework
 //
-// This file implements a universal value printer that can print a
+// This file implements a universal value printer that can print_extended_string a
 // value of any type T:
 //
 //   void ::testing::internal::UniversalPrinter<T>::Print(value, ostream_ptr);
@@ -9115,7 +9115,7 @@ void PrintBytesInObjectToImpl(const unsigned char* obj_bytes, size_t count,
 
 namespace internal2 {
 
-// Delegates to PrintBytesInObjectToImpl() to print the bytes in the
+// Delegates to PrintBytesInObjectToImpl() to print_extended_string the bytes in the
 // given object.  The delegation simplifies the implementation, which
 // uses the << operator and thus is easier done outside of the
 // ::testing::internal namespace, which contains a << operator that
@@ -9129,7 +9129,7 @@ void PrintBytesInObjectTo(const unsigned char* obj_bytes, size_t count,
 
 namespace internal {
 
-// Depending on the value of a char (or wchar_t), we print it in one
+// Depending on the value of a char (or wchar_t), we print_extended_string it in one
 // of three formats:
 //   - as is if it's a printable ASCII (e.g. 'a', '2', ' '),
 //   - as a hexidecimal escape sequence (e.g. '\x7F'), or
@@ -9224,19 +9224,19 @@ static CharFormat PrintAsStringLiteralTo(char c, ostream* os) {
 // UnsignedChar is the unsigned version of Char, which is the type of c.
 template <typename UnsignedChar, typename Char>
 void PrintCharAndCodeTo(Char c, ostream* os) {
-  // First, print c as a literal in the most readable form we can find.
+  // First, print_extended_string c as a literal in the most readable form we can find.
   *os << ((sizeof(c) > 1) ? "L'" : "'");
   const CharFormat format = PrintAsCharLiteralTo<UnsignedChar>(c, os);
   *os << "'";
 
-  // To aid user debugging, we also print c's code in decimal, unless
+  // To aid user debugging, we also print_extended_string c's code in decimal, unless
   // it's 0 (in which case c was printed as '\\0', making the code
   // obvious).
   if (c == 0)
     return;
   *os << " (" << static_cast<int>(c);
 
-  // For more convenience, we print c's code again in hexidecimal,
+  // For more convenience, we print_extended_string c's code again in hexidecimal,
   // unless c was already printed in the form '\x##' or the code is in
   // [1, 9].
   if (format == kHexEscape || (1 <= c && c <= 9)) {
@@ -9292,7 +9292,7 @@ static void UniversalPrintCharArray(
   //   const char kFoo[] = "foo";
   // generates an array of 4, not 3, elements, with the last one being '\0'.
   //
-  // Therefore when printing a char array, we don't print the last element if
+  // Therefore when printing a char array, we don't print_extended_string the last element if
   // it's '\0', such that the output matches the string literal as it's
   // written in the source code.
   if (len > 0 && begin[len - 1] == '\0') {
@@ -9302,7 +9302,7 @@ static void UniversalPrintCharArray(
 
   // If, however, the last element in the array is not '\0', e.g.
   //    const char kFoo[] = { 'f', 'o', 'o' };
-  // we must print the entire array.  We also print a message to indicate
+  // we must print_extended_string the entire array.  We also print a message to indicate
   // that the array is not NUL-terminated.
   PrintCharsAsStringTo(begin, len, os);
   *os << " (no terminating NUL)";

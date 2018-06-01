@@ -11,16 +11,17 @@ void my_check(std::string input) {
 
     tree_encode.encoding();
 
-    huffman_tree::string_t code;
+    bit_container code;
     for (auto c : input) {
-        code += tree_encode.get_code(c);
+        auto addition = tree_encode.get_code(c);
+        code += addition;
     }
 
     double n = input.length();
-    EXPECT_TRUE(code.length() <= n * std::log2(n + 1));
+    EXPECT_TRUE(code.size() <= n * std::log2(n + 1));
 
-    huffman_tree::string_t path = tree_encode.get_path();
-    huffman_tree::string_t dictionary = tree_encode.get_dictionary();
+    auto path = tree_encode.get_path();
+    auto dictionary = tree_encode.get_dictionary();
 
     huffman_tree tree_decode;
 
@@ -31,8 +32,8 @@ void my_check(std::string input) {
     tree_decode.decoding();
 
     std::string result;
-    for (auto c : code) {
-        auto p = tree_decode.transition(c);
+    for (bit_container::bool_iterator it(code); !it.is_end(); ++it) {
+        auto p = tree_decode.transition(it.get());
         if (p.second) {
             result += p.first;
         }
@@ -41,6 +42,9 @@ void my_check(std::string input) {
     EXPECT_EQ(input, result);
 }
 
+TEST(correctness, presample){
+    my_check("abc");
+}
 TEST(correctness, sample) {
     my_check("abracadabra");
 }
@@ -89,12 +93,12 @@ TEST(correctness, small_fuzzing_a_z) {
     }
 }
 
-TEST(correctness, small_fuzzing_0_256) {
+TEST(correctness, small_fuzzing_0_128) {
     srand(0);
     for (int i = 0; i < 100; ++i) {
         std::string input;
         for (int j = 0; j < 100; ++j) {
-            input += static_cast<unsigned char>(rand() % 256);
+            input += static_cast<char>(rand() % 128);
         }
         my_check(input);
     }

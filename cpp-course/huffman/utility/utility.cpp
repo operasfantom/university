@@ -4,50 +4,31 @@
 #include <algorithm>
 #include <codecvt>
 #include <sstream>
+#include <cstring>
+#include <fstream>
 #include "huffman_tree.h"
+#include "binary_io.h"
+#include "bit_container.h"
 
-//namespace io {
-void print_string(std::ofstream &ofs, huffman_tree::string_t const &s) {
-    ofs << s.length() << '\n' << s << '\n';
-}
+size_t CRITICAL_SIZE = 20;//TODO
 
-void print_char(std::ofstream &ofs, char c) {
-    ofs << c;
-}//TODO SFINAE
-//}
+using symbol_t = huffman_tree::symbol_t;
+using string_t = huffman_tree::string_t;
 
-std::ifstream & read_symbol(std::ifstream &ifs, huffman_tree::symbol_t &c) {
-    ifs >> c;
-    return ifs;
-}
-
-size_t read_number(std::ifstream &ifs){
-    size_t n;
-    ifs >> n;
-    return n;
-}
-
-huffman_tree::string_t read_string(std::ifstream &ifs) {
-    huffman_tree::string_t result;
-    size_t n;
-    ifs >> n;
-    result.resize(n);
-    for (auto &c : result) {
-        ifs >> c;
-    }
-    return result;
-}
+#define min(a, b) ((a) < (b) ? (a) : (b))
 
 void encoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
 
-    std::ifstream ifs;
-    ifs.open(file_in);
-    huffman_tree::symbol_t c;
+    std::ifstream ifs(file_in, std::ios::binary);
+    if (!ifs.is_open()) {
+        throw std::runtime_error("couldn't open input file");
+    }
+
+    symbol_t c;
     while (read_symbol(ifs, c)) {
         tree.add(c);
     }
-    ifs.close();
 
     try {
         tree.encoding();
@@ -55,15 +36,38 @@ void encoding(std::string const &file_in, std::string const &file_out) {
         std::cerr << e.what();
     }
 
-    std::ofstream ofs(file_out);
-
-    print_string(ofs, tree.get_path());
-    print_string(ofs, tree.get_dictionary());//TODO thread?
-
-    ifs.open(file_in);
-    while (ifs >> c) {
-        print_string(ofs, tree.get_code(c));//TODO rvalue
+    std::ofstream ofs(file_out, std::ios::binary);
+    if (!ofs.is_open()) {
+        throw std::runtime_error("couldn't open output file");
     }
+
+    print_extended(ofs, tree.get_path());
+    print_extended(ofs, tree.get_dictionary());//TODO move?
+
+    bit_container acc;
+    auto check_acc_size = [&ofs, &acc]() {
+        if (acc.size() > CRITICAL_SIZE) {
+            size_t number_of_blocks = acc.blocks_count() - (acc.exists_last_block() ? 1 : 0);
+            for (size_t i = 0; i < number_of_blocks; ++i) {
+                char c = acc.get_block(i);
+                print(ofs, c);
+            }
+            acc.drop();
+        }
+    };
+
+    size_t text_length = tree.get_text_length();
+    print(ofs, text_length);
+
+    ifs.close();
+    ifs.open(file_in);//TODO
+
+    while (read_symbol(ifs, c)) {
+        auto addition = tree.get_code(c);
+        acc += addition;
+        check_acc_size();
+    }
+    print(ofs, acc);
 
     ifs.close();
     ofs.close();
@@ -72,13 +76,15 @@ void encoding(std::string const &file_in, std::string const &file_out) {
 void decoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
 
-    std::ifstream ifs(file_in);
-//    ifs >> std::noskipws;
+    std::ifstream ifs(file_in, std::ios::binary);
+    if (!ifs.is_open()) {
+        throw std::runtime_error("couldn't open input file");
+    }
 
-    huffman_tree::string_t path = read_string(ifs);
+    auto path = read_extended_bit_container(ifs);
     tree.set_path(path);
-
-    huffman_tree::string_t dictionary = read_string(ifs);
+    
+    string_t dictionary = read_extended_string(ifs);
 
     tree.set_dictionary(dictionary);//TODO move
 
@@ -88,17 +94,26 @@ void decoding(std::string const &file_in, std::string const &file_out) {
         std::cerr << e.what();
     }
 
-    std::ofstream ofs(file_out);
-    huffman_tree::symbol_t c;
-    while (read_symbol(ifs, c)){
-        try {
-            auto p = tree.transition(c);
-            if (p.second) {
-                print_char(ofs, p.first);
+    std::ofstream ofs(file_out, std::ios::binary);
+    if (!ofs.is_open()) {
+        throw std::runtime_error("couldn't open output file");
+    }
+
+    size_t text_length = read_size_t(ifs);
+    char t;
+    while (read_symbol(ifs, t)) {
+        for (size_t i = 0; i < min(text_length, 8); ++i) {
+            bool c = static_cast<bool>((t >> i) & 1);
+            try {
+                auto p = tree.transition(c);
+                if (p.second) {
+                    print(ofs, p.first);
+                }
+            } catch (std::exception &e) {
+                std::cerr << e.what();
             }
-        } catch (std::exception &e) {
-            std::cerr << e.what();
         }
+        text_length -= 8;
     }
 }
 

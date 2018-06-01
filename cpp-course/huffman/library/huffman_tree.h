@@ -3,47 +3,50 @@
 
 #include <ostream>
 #include <vector>
+#include "bit_container.h"
 
-//const size_t SYMBOLS = std::numeric_limits<huffman_tree::symbol_t>::max();
 const size_t SYMBOLS = 256;
-
-template <typename S>
-struct Node {
-    Node *left = nullptr, *right = nullptr;
-
-    int64_t val = 0;
-    S symbol = 0;
-
-    Node() = default;
-
-    explicit Node(Node *first, Node *second) : left(first), right(second) {
-        if (left) val += left->val;
-        if (right) val += right->val;
-    }
-
-    explicit Node(S symbol, int64_t val) : val(val), symbol(symbol) {}
-
-    bool operator<(const Node &rhs) const {
-        return val < rhs.val;
-    }
-};
 
 class huffman_tree {
 public:
-    typedef char symbol_t;
+    typedef unsigned char symbol_t;
     typedef std::basic_string<symbol_t> string_t;
 private:
+    template <typename S>
+    struct Node {
+        Node *left = nullptr, *right = nullptr;
+
+        int64_t val = 0;
+        S symbol = 0;
+
+        Node() = default;
+
+        explicit Node(Node *first, Node *second) : left(first), right(second) {
+            if (left) val += left->val;
+            if (right) val += right->val;
+        }
+
+        explicit Node(S symbol, int64_t val) : val(val), symbol(symbol) {}
+
+        bool operator<(const Node &rhs) const {
+            if (val == rhs.val){
+                return symbol < rhs.symbol;
+            }
+            return val < rhs.val;
+        }
+    };
+
     std::vector<int64_t> cnt;
-    std::vector<string_t> code;
+    std::vector<bit_container> code;
 
     Node<symbol_t> *root = nullptr;
 
     string_t dictionary;
-    string_t path;
+    bit_container path;
 
-    void dfs(Node<symbol_t> *vertex, string_t &current_code, string_t &dictionary, string_t &path);
+    void dfs(Node<symbol_t> *vertex, bit_container &current_code, string_t &dictionary, bit_container &path);
 
-    void build_tree(Node<symbol_t> *vertex, symbol_t *&, symbol_t *&);
+    void build_tree(Node<symbol_t> *vertex, bit_container::bool_iterator &, symbol_t *&);
 
     void delete_tree(Node<symbol_t>* vertex);
 
@@ -66,20 +69,21 @@ public:
 
     void encoding();
 
-    string_t get_path();
+    bit_container get_path();
 
     string_t get_dictionary();
 
-    string_t get_code(symbol_t);
+    bit_container get_code(symbol_t);
 
-    void set_path(string_t const &);
+    void set_path(const bit_container &);
 
     void set_dictionary(string_t const &);
 
     void decoding();
 
-    std::pair<symbol_t, bool> transition(symbol_t c);
+    std::pair<symbol_t, bool> transition(bool c);
 
+    size_t get_text_length();
 };
 
-#endif
+#endif //HUFFMAN_LIBRARY_H

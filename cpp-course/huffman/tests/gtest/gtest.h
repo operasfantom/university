@@ -379,7 +379,7 @@
 #endif
 
 // Brings in definitions for functions used in the testing::internal::posix
-// namespace (read, write, close, chdir, isatty, stat). We do not currently
+// namespace (read_symbol, write, close, chdir, isatty, stat). We do not currently
 // use them on Windows Mobile.
 #if !GTEST_OS_WINDOWS
 // This assumes that non-Windows OSes provide unistd.h. For OSes where this
@@ -3144,7 +3144,7 @@ namespace testing {
 //   foo << 1 << " != " << 2;
 //   std::cout << foo;
 //
-// will print "1 != 2".
+// will print_extended_string "1 != 2".
 //
 // Message is not intended to be inherited from.  In particular, its
 // destructor is not virtual.
@@ -7104,7 +7104,7 @@ GTEST_API_ std::string AppendUserMessage(
 // are enabled).  We derive it from std::runtime_error, which is for
 // errors presumably detectable only at run time.  Since
 // std::runtime_error inherits from std::exception, many testing
-// frameworks know how to extract and print the message inside it.
+// frameworks know how to extract and print_extended_string the message inside it.
 class GTEST_API_ GoogleTestFailureException : public ::std::runtime_error {
  public:
   explicit GoogleTestFailureException(const TestPartResult& failure);
@@ -7912,7 +7912,7 @@ enum RelationToSource {
                // owns the copy.
 };
 
-// Adapts a native array to a read-only STL-style container.  Instead
+// Adapts a native array to a read_symbol-only STL-style container.  Instead
 // of the complete STL container concept, this adaptor only implements
 // members useful for Google Mock's container matchers.  New members
 // should be added as needed.  To simplify the implementation, we only
@@ -9019,7 +9019,7 @@ TEST_P(DerivedTest, DoesBlah) {
 //   Unlike other linked_ptr implementations, in this implementation
 //   a linked_ptr object is thread-safe in the sense that:
 //     - it's safe to copy linked_ptr objects concurrently,
-//     - it's safe to copy *from* a linked_ptr and read its underlying
+//     - it's safe to copy *from* a linked_ptr and read_symbol its underlying
 //       raw pointer (e.g. via get()) concurrently, and
 //     - it's safe to write to two linked_ptrs that point to the same
 //       shared object concurrently.
@@ -9224,12 +9224,12 @@ linked_ptr<T> make_linked_ptr(T* ptr) {
 
 // Google Test - The Google C++ Testing Framework
 //
-// This file implements a universal value printer that can print a
+// This file implements a universal value printer that can print_extended_string a
 // value of any type T:
 //
 //   void ::testing::internal::UniversalPrinter<T>::Print(value, ostream_ptr);
 //
-// A user can teach this function how to print a class type T by
+// A user can teach this function how to print_extended_string a class type T by
 // defining either operator<<() or PrintTo() in the namespace that
 // defines T.  More specifically, the FIRST defined function in the
 // following list will be used (assuming T is defined in namespace
@@ -9239,8 +9239,8 @@ linked_ptr<T> make_linked_ptr(T* ptr) {
 //   2. operator<<(ostream&, const T&) defined in either foo or the
 //      global namespace.
 //
-// If none of the above is defined, it will print the debug string of
-// the value if it is a protocol buffer, or print the raw bytes in the
+// If none of the above is defined, it will print_extended_string the debug string of
+// the value if it is a protocol buffer, or print_extended_string the raw bytes in the
 // value otherwise.
 //
 // To aid debugging: when T is a reference type, the address of the
@@ -9274,11 +9274,11 @@ linked_ptr<T> make_linked_ptr(T* ptr) {
 //
 // Known limitation:
 //
-// The print primitives print the elements of an STL-style container
+// The print primitives print_extended_string the elements of an STL-style container
 // using the compiler-inferred type of *iter where iter is a
 // const_iterator of the container.  When const_iterator is an input
 // iterator but not a forward iterator, this inferred type may not
-// match value_type, and the print output may be incorrect.  In
+// match value_type, and the print_extended_string output may be incorrect.  In
 // practice, this is rarely a problem as for most containers
 // const_iterator is a forward iterator.  We'll fix this if there's an
 // actual need for it.  Note that this fix cannot rely on value_type
@@ -9316,7 +9316,7 @@ enum TypeKind {
 };
 
 // TypeWithoutFormatter<T, kTypeKind>::PrintValue(value, os) is called
-// by the universal printer to print a value of type T when neither
+// by the universal printer to print_extended_string a value of type T when neither
 // operator<< nor PrintTo() is defined for T, where kTypeKind is the
 // "kind" of T as defined by enum TypeKind.
 template <typename T, TypeKind kTypeKind>
@@ -9329,8 +9329,8 @@ class TypeWithoutFormatter {
   }
 };
 
-// We print a protobuf using its ShortDebugString() when the string
-// doesn't exceed this many characters; otherwise we print it using
+// We print_extended_string a protobuf using its ShortDebugString() when the string
+// doesn't exceed this many characters; otherwise we print_extended_string it using
 // DebugString() for better readability.
 const size_t kProtobufOneLinerMaxLength = 50;
 
@@ -9350,7 +9350,7 @@ template <typename T>
 class TypeWithoutFormatter<T, kConvertibleToInteger> {
  public:
   // Since T has no << operator or PrintTo() but can be implicitly
-  // converted to BiggestInt, we print it as a BiggestInt.
+  // converted to BiggestInt, we print_extended_string it as a BiggestInt.
   //
   // Most likely T is an enum type (either named or unnamed), in which
   // case printing it as an integer is the desired behavior.  In case
@@ -9380,7 +9380,7 @@ class TypeWithoutFormatter<T, kConvertibleToInteger> {
 // Note that this operator<< takes a generic std::basic_ostream<Char,
 // CharTraits> type instead of the more restricted std::ostream.  If
 // we define it to take an std::ostream instead, we'll get an
-// "ambiguous overloads" compiler error when trying to print a type
+// "ambiguous overloads" compiler error when trying to print_extended_string a type
 // Foo that supports streaming to std::basic_ostream<Char,
 // CharTraits>, as the compiler cannot tell whether
 // operator<<(std::ostream&, const T&) or
@@ -9403,7 +9403,7 @@ template <typename Char, typename CharTraits, typename T>
 // magic needed for implementing UniversalPrinter won't work.
 namespace testing_internal {
 
-// Used to print a value that is not an STL-style container when the
+// Used to print_extended_string a value that is not an STL-style container when the
 // user doesn't define PrintTo() for it.
 template <typename T>
 void DefaultPrintNonContainerTo(const T& value, ::std::ostream* os) {
@@ -9454,13 +9454,13 @@ class UniversalPrinter;
 template <typename T>
 void UniversalPrint(const T& value, ::std::ostream* os);
 
-// Used to print an STL-style container when the user doesn't define
+// Used to print_extended_string an STL-style container when the user doesn't define
 // a PrintTo() for it.
 template <typename C>
 void DefaultPrintTo(IsContainer /* dummy */,
                     false_type /* is not a pointer */,
                     const C& container, ::std::ostream* os) {
-  const size_t kMaxCount = 32;  // The maximum number of elements to print.
+  const size_t kMaxCount = 32;  // The maximum number of elements to print_extended_string.
   *os << '{';
   size_t count = 0;
   for (typename C::const_iterator it = container.begin();
@@ -9484,7 +9484,7 @@ void DefaultPrintTo(IsContainer /* dummy */,
   *os << '}';
 }
 
-// Used to print a pointer that is neither a char pointer nor a member
+// Used to print_extended_string a pointer that is neither a char pointer nor a member
 // pointer, when the user doesn't define PrintTo() for it.  (A member
 // variable pointer or member function pointer doesn't really point to
 // a location in the address space.  Their representation is
@@ -9503,13 +9503,13 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
     // IsTrue() silences warnings: "Condition is always true",
     // "unreachable code".
     if (IsTrue(ImplicitlyConvertible<T*, const void*>::value)) {
-      // T is not a function type.  We just call << to print p,
+      // T is not a function type.  We just call << to print_extended_string p,
       // relying on ADL to pick up user-defined << for their pointer
       // types, if any.
       *os << p;
     } else {
       // T is a function type, so '*os << p' doesn't do what we want
-      // (it just prints p as bool).  We want to print p as a const
+      // (it just prints p as bool).  We want to print_extended_string p as a const
       // void*.  However, we cannot cast it to const void* directly,
       // even using reinterpret_cast, as earlier versions of gcc
       // (e.g. 3.4.5) cannot compile the cast when p is a function
@@ -9520,7 +9520,7 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
   }
 }
 
-// Used to print a non-container, non-pointer value when the user
+// Used to print_extended_string a non-container, non-pointer value when the user
 // doesn't define PrintTo() for it.
 template <typename T>
 void DefaultPrintTo(IsNotContainer /* dummy */,
@@ -9568,7 +9568,7 @@ void PrintTo(const T& value, ::std::ostream* os) {
 }
 
 // The following list of PrintTo() overloads tells
-// UniversalPrinter<T>::Print() how to print standard types (built-in
+// UniversalPrinter<T>::Print() how to print_extended_string standard types (built-in
 // types, strings, plain arrays, and pointers).
 
 // Overloads for various char types.
@@ -9602,7 +9602,7 @@ inline void PrintTo(char* s, ::std::ostream* os) {
 }
 
 // signed/unsigned char is often used for representing binary data, so
-// we print pointers to it as void* to be safe.
+// we print_extended_string pointers to it as void* to be safe.
 inline void PrintTo(const signed char* s, ::std::ostream* os) {
   PrintTo(ImplicitCast_<const void*>(s), os);
 }
@@ -10080,7 +10080,7 @@ class ParamIteratorInterface {
   // Clones the iterator object. Used for implementing copy semantics
   // of ParamIterator<T>.
   virtual ParamIteratorInterface* Clone() const = 0;
-  // Dereferences the current iterator and provides (read-only) access
+  // Dereferences the current iterator and provides (read_symbol-only) access
   // to the pointed value. It is the caller's responsibility not to call
   // Current() on an iterator equal to BaseGenerator()->End().
   // Used for implementing ParamGenerator<T>::operator*().
@@ -17610,7 +17610,7 @@ class UnitTest;
 //   }
 //
 // Then the failed expectation EXPECT_TRUE(IsEven(Fib(5)))
-// will print the message
+// will print_extended_string the message
 //
 //   Value of: IsEven(Fib(5))
 //     Actual: false (5 is odd)
@@ -17636,7 +17636,7 @@ class UnitTest;
 //       return testing::AssertionFailure() << n << " is odd";
 //   }
 //
-// Then a statement EXPECT_FALSE(IsEven(Fib(6))) will print
+// Then a statement EXPECT_FALSE(IsEven(Fib(6))) will print_extended_string
 //
 //   Value of: IsEven(Fib(6))
 //     Actual: true (8 is even)
@@ -18723,7 +18723,7 @@ class GTEST_API_ UnitTest {
 //
 // However, we strongly recommend you to write your own main() and
 // call AddGlobalTestEnvironment() there, as relying on initialization
-// of global variables makes the code harder to read and may cause
+// of global variables makes the code harder to read_symbol and may cause
 // problems when you register multiple environments from different
 // translation units and the environments have dependencies among them
 // (remember that the compiler doesn't guarantee the list in which
@@ -18759,7 +18759,7 @@ namespace internal {
 // compared by value with the string object.  If the value is a char
 // pointer but the other operand is not an STL string object, we don't
 // know whether the pointer is supposed to point to a NUL-terminated
-// string, and thus want to print it as a pointer to be safe.
+// string, and thus want to print_extended_string it as a pointer to be safe.
 //
 // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
 
@@ -18781,7 +18781,7 @@ class FormatForComparison<ToPrint[N], OtherOperand> {
   }
 };
 
-// By default, print C string as pointers to be safe, as we don't know
+// By default, print_extended_string C string as pointers to be safe, as we don't know
 // whether they actually point to a NUL-terminated string.
 
 #define GTEST_IMPL_FORMAT_C_STRING_AS_POINTER_(CharType)                \
@@ -18801,7 +18801,7 @@ GTEST_IMPL_FORMAT_C_STRING_AS_POINTER_(const wchar_t);
 #undef GTEST_IMPL_FORMAT_C_STRING_AS_POINTER_
 
 // If a C string is compared with an STL string object, we know it's meant
-// to point to a NUL-terminated string, and thus can print it as a string.
+// to point to a NUL-terminated string, and thus can print_extended_string it as a string.
 
 #define GTEST_IMPL_FORMAT_C_STRING_AS_STRING_(CharType, OtherStringType) \
   template <>                                                           \
@@ -18835,8 +18835,8 @@ GTEST_IMPL_FORMAT_C_STRING_AS_STRING_(const wchar_t, ::std::wstring);
 // Formats a comparison assertion (e.g. ASSERT_EQ, EXPECT_LT, and etc)
 // operand to be used in a failure message.  The type (but not value)
 // of the other operand may affect the format.  This allows us to
-// print a char* as a raw pointer when it is compared against another
-// char* or void*, and print it as a C string when it is compared
+// print_extended_string a char* as a raw pointer when it is compared against another
+// char* or void*, and print_extended_string it as a C string when it is compared
 // against an std::string object, for example.
 //
 // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.

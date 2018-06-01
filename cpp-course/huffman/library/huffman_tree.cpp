@@ -15,28 +15,32 @@ huffman_tree::huffman_tree() {
 }
 
 
-void huffman_tree::dfs(Node<symbol_t> *vertex, string_t &current_code, string_t &dictionary, string_t &path) {
+void
+huffman_tree::dfs(Node<symbol_t> *vertex, bit_container &current_code, string_t &dictionary, bit_container &path) {
     if (is_leaf(vertex)) {
         dictionary.push_back(vertex->symbol);
         code[vertex->symbol] = current_code;
     } else {
         if (vertex->left != nullptr) {
-            path += 'D';
-            current_code += '0';
+//            path += 'D';
+            path.push_back(true);
+            current_code.push_back(false);
             dfs(vertex->left, current_code, dictionary, path);
             current_code.pop_back();
         }
         if (vertex->right != nullptr) {
-            path += 'D';
-            current_code += '1';
+//            path += 'D';
+            path.push_back(true);
+            current_code.push_back(true);
             dfs(vertex->right, current_code, dictionary, path);
             current_code.pop_back();
         }
     }
-    path += 'U';
+//    path += 'U';
+    path.push_back(false);
 }
 
-huffman_tree::string_t huffman_tree::get_path() {
+bit_container huffman_tree::get_path() {
     return path;
 }
 
@@ -44,7 +48,7 @@ huffman_tree::string_t huffman_tree::get_dictionary() {
     return dictionary;
 }
 
-huffman_tree::string_t huffman_tree::get_code(symbol_t c) {
+bit_container huffman_tree::get_code(symbol_t c) {
     return code[c];
 }
 
@@ -59,7 +63,7 @@ huffman_tree::~huffman_tree() {
     delete_tree(root);
 }
 
-void huffman_tree::set_path(string_t const &path) {
+void huffman_tree::set_path(const bit_container &path) {
     this->path = path;
 }
 
@@ -97,7 +101,7 @@ void huffman_tree::encoding() {
     }
     root = q.top();
 
-    string_t current_code;
+    bit_container current_code;
     dfs(root, current_code, dictionary, path);
 
     path.pop_back();
@@ -105,40 +109,36 @@ void huffman_tree::encoding() {
 
 //Pre: set_path() && set_dictionary()
 void huffman_tree::decoding() {
-    auto it = std::find_if(path.begin(), path.end(), [](symbol_t c) { return c != 'D' && c != 'U'; });
+    /*auto it = std::find_if(path.begin(), path.end(), [](symbol_t c) { return c != 'D' && c != 'U'; });
     if (it != path.end()) {
         throw std::invalid_argument("incorrect symbol in path: " + *it);
-    }
+    }*/
 
     Node<symbol_t> *current_node = root = new Node<symbol_t>();
     symbol_t* current_symbol = &dictionary[0];
-    symbol_t* current_step = &path[0];
-    build_tree(current_node, current_step, current_symbol);
+    bit_container::bool_iterator current_step(path);
+    try {
+        build_tree(current_node, current_step, current_symbol);
+    } catch (std::exception &e) {
+        throw;
+    }
 
-    if (string_t::iterator(current_step) != path.end()) {
+    if (!current_step.is_end()) {
         throw std::invalid_argument("odd symbols in path");
     }
     huffman_tree::current_node = root;
 }
 
-std::pair<huffman_tree::symbol_t, bool> huffman_tree::transition(symbol_t c) {
-    switch (c){
-        case '0':{
-            current_node = current_node->left;
-            if (!current_node) {
-                throw std::invalid_argument("received unacceptable symbol");
-            }
-            break;
+std::pair<huffman_tree::symbol_t, bool> huffman_tree::transition(bool c) {
+    if (c) {
+        current_node = current_node->right;
+        if (!current_node) {
+            throw std::invalid_argument("received unacceptable symbol");
         }
-        case '1':{
-            current_node = current_node->right;
-            if (!current_node) {
-                throw std::invalid_argument("received unacceptable symbol");
-            }
-            break;
-        }
-        default:{
-            throw std::invalid_argument("received invalid symbol, expected 0 or 1");
+    } else {
+        current_node = current_node->left;
+        if (!current_node) {
+            throw std::invalid_argument("received unacceptable symbol");
         }
     }
     if (is_leaf(current_node)) {
@@ -153,17 +153,25 @@ bool huffman_tree::is_leaf(Node<huffman_tree::symbol_t> *vertex) {
     return vertex->left == nullptr && vertex->right == nullptr;
 }
 
-void huffman_tree::build_tree(Node<symbol_t> *vertex, symbol_t *&c, symbol_t *&current_symbol) {
-    if (*c == 'D') {
-        build_tree(vertex->left = new Node<symbol_t>(), ++c, current_symbol);
+void huffman_tree::build_tree(Node<symbol_t> *vertex, bit_container::bool_iterator &step, symbol_t *&current_symbol) {
+    if (!step.is_end() && step.get() == true) {
+        build_tree(vertex->left = new Node<symbol_t>(), ++step, current_symbol);
     }
-    if (*c == 'D') {
-        build_tree(vertex->right = new Node<symbol_t>(), ++c, current_symbol);
+    if (!step.is_end() && step.get() == true) {
+        build_tree(vertex->right = new Node<symbol_t>(), ++step, current_symbol);
     }
-    if (*c == 'U'){
+    if (!step.is_end() && step.get() == false) {
         if (is_leaf(vertex)) {
             vertex->symbol = *(current_symbol++);
         }
-        ++c;
+        ++step;
     }
+}
+
+size_t huffman_tree::get_text_length() {
+    size_t result = 0;
+    for (size_t i = 0; i < SYMBOLS; ++i) {
+        result += cnt[i] * get_code(i).size();
+    }
+    return result;
 }
