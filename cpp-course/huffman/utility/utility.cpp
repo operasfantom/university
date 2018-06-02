@@ -150,14 +150,22 @@ int main(int argc, char **argv) {
         check_signature(3, argc);
         std::string file_in = argv[1];
         std::string file_out = argv[2];
-        encoding(file_in, file_out);
+        try {
+            encoding(file_in, file_out);
+        } catch (std::exception &e) {
+            std::cerr << e.what();
+        }
         return 0;
     }
     if (option == "-d" || option == "--decoding") {
         check_signature(3, argc);
         std::string file_in = argv[1];
         std::string file_out = argv[2];
-        decoding(file_in, file_out);
+        try {
+            decoding(file_in, file_out);
+        } catch (std::exception &e) {
+            std::cerr << e.what();
+        }
         return 0;
     }
     print_signature("wrong flag: " + std::string(argv[0]));
