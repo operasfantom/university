@@ -103,3 +103,17 @@ TEST(correctness, small_fuzzing_0_128) {
         my_check(input);
     }
 }
+
+TEST(correctness, critical_size) {
+    size_t CZ = 1000007;
+    my_check(std::string(CZ, 'a'));
+}
+
+TEST(correctness, critical_size_random) {
+    size_t CZ = 1000007;
+    std::string s;
+    s.resize(CZ);
+    for (auto &c : s) {
+        c = static_cast<char>(rand() % 128);
+    }
+}

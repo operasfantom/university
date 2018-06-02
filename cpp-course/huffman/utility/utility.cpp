@@ -10,7 +10,7 @@
 #include "binary_io.h"
 #include "bit_container.h"
 
-size_t CRITICAL_SIZE = 20;//TODO
+size_t CRITICAL_SIZE = 100000;
 
 using symbol_t = huffman_tree::symbol_t;
 using string_t = huffman_tree::string_t;
@@ -59,8 +59,7 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     size_t text_length = tree.get_text_length();
     print(ofs, text_length);
 
-    ifs.close();
-    ifs.open(file_in);//TODO
+    ifs.seekg(0, ifs.beg);
 
     while (read_symbol(ifs, c)) {
         auto addition = tree.get_code(c);
@@ -100,6 +99,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
     }
 
     size_t text_length = read_size_t(ifs);
+    bool end_of_file = false;
     char t;
     while (read_symbol(ifs, t)) {
         for (size_t i = 0; i < min(text_length, 8); ++i) {
@@ -113,15 +113,22 @@ void decoding(std::string const &file_in, std::string const &file_out) {
                 std::cerr << e.what();
             }
         }
-        text_length -= 8;
+        if (text_length >= 8){
+            text_length -= 8;
+        } else {
+            if (end_of_file){
+                throw std::invalid_argument("not enough symbols in code");
+            }
+            end_of_file = true;
+        }
     }
 }
 
 void print_signature(std::string const &message) {
     fprintf(stderr, "Error:%s\n", message.c_str());
     fprintf(stderr, "Usage: huffman-utility [OPTION] [FILE1] [FILE2]\n");
-    fprintf(stderr, "-e, --encoding, \n");
-    fprintf(stderr, "-d, --decoding, \n");
+    fprintf(stderr, "-e, --encoding, encode [FILE1] and save result to [FILE2] \n");
+    fprintf(stderr, "-d, --decoding, decode [FILE1] and save result to [FILE2] \n");
 }
 
 void check_signature(int expected, int result) {
