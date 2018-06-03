@@ -10,10 +10,12 @@
 #include "binary_io.h"
 #include "bit_container.h"
 
-size_t CRITICAL_SIZE = 100000;
+//size_t CRITICAL_SIZE = 1 << 16;
+size_t CRITICAL_SIZE = 1 << 0;
 
 using symbol_t = huffman_tree::symbol_t;
 using string_t = huffman_tree::string_t;
+using container = huffman_tree::container;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -44,15 +46,14 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     print_extended(ofs, tree.get_path());
     print_extended(ofs, tree.get_dictionary());//TODO move?
 
-    bit_container acc;
+    container acc;
     auto check_acc_size = [&ofs, &acc]() {
-        if (acc.size() > CRITICAL_SIZE) {
-            size_t number_of_blocks = acc.blocks_count() - (acc.exists_last_block() ? 1 : 0);
-            for (size_t i = 0; i < number_of_blocks; ++i) {
-                char c = acc.get_block(i);
-                print(ofs, c);
+        if (acc.char_blocks_count() > CRITICAL_SIZE) {
+            if (!acc.empty()) {
+                auto t = acc.pop();
+                print(ofs, acc);
+                acc = t;
             }
-            acc.drop();
         }
     };
 
@@ -83,7 +84,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
 
     auto const& path = read_extended_bit_container(ifs);
     tree.set_path(path);
-    
+
     string_t dictionary = read_extended_string(ifs);
 
     tree.set_dictionary(dictionary);//TODO move
@@ -114,8 +115,8 @@ void decoding(std::string const &file_in, std::string const &file_out) {
                 std::cerr << e.what();
             }
         }
-        if (text_length >= 8){
-            text_length -= 8;
+        if (text_length >= huffman_tree::BLOCK_SIZE) {
+            text_length -= huffman_tree::BLOCK_SIZE;
         } else {
             if (end_of_file){
                 throw std::invalid_argument("not enough symbols in code");

@@ -15,9 +15,7 @@ huffman_tree::string_t read_extended_string(std::ifstream &ifs) {
     huffman_tree::string_t result;
     size_t n = read_size_t(ifs);
     result.resize(n);
-    for (auto &c : result) {
-        ifs.read(reinterpret_cast<char *>(&c), sizeof(c));
-    }
+    ifs.read(reinterpret_cast<char *>(&result[0]), n);
     return result;
 
 }
@@ -25,9 +23,7 @@ huffman_tree::string_t read_extended_string(std::ifstream &ifs) {
 huffman_tree::container read_extended_bit_container(std::ifstream &ifs) {
     size_t n = read_size_t(ifs);
     huffman_tree::container result(n);
-    for (size_t i = 0; i < result.blocks_count(); ++i) {
-        ifs.read(reinterpret_cast<char *>(result.at(i)), sizeof(result[0]));
-    }
+    ifs.read(reinterpret_cast<char *>(&result[0]), result.char_blocks_count());
     return result;
 }
 
@@ -40,9 +36,7 @@ void print(std::ofstream &ofs, huffman_tree::string_t const &s) {
 }
 
 void print(std::ofstream &ofs, huffman_tree::container const &s) {
-    for (size_t i = 0; i < s.blocks_count(); ++i) {
-        print(ofs, s.get_block(i));
-    }
+    ofs.write(reinterpret_cast<const char *>(s.data()), s.char_blocks_count());
 }
 
 void print_extended(std::ofstream &ofs, huffman_tree::string_t const &s) {
@@ -54,3 +48,4 @@ void print_extended(std::ofstream &ofs, huffman_tree::container const &s) {
     print(ofs, s.size());
     print(ofs, s);
 }
+

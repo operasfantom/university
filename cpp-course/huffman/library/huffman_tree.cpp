@@ -62,7 +62,7 @@ huffman_tree::~huffman_tree() {
     delete_tree(root);
 }
 
-void huffman_tree::set_path(container &path) {
+void huffman_tree::set_path(const container &path) {
     this->path = path;
 }
 
@@ -108,13 +108,8 @@ void huffman_tree::encoding() {
 
 //Pre: set_path() && set_dictionary()
 void huffman_tree::decoding() {
-    /*auto it = std::find_if(path.begin(), path.end(), [](symbol_t c) { return c != 'D' && c != 'U'; });
-    if (it != path.end()) {
-        throw std::invalid_argument("incorrect symbol in path: " + *it);
-    }*/
-
     Node<symbol_t> *current_node = root = new Node<symbol_t>();
-    symbol_t* current_symbol = &dictionary[0];
+    auto* current_symbol = &dictionary[0];
     container::bool_iterator current_step(path);
     try {
         build_tree(current_node, current_step, current_symbol);

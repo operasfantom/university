@@ -1,15 +1,12 @@
-//
-// Created by operasfantom on 01.06.18.
-//
-
 #ifndef HUFFMAN_BIT_CONTAINER_H
 #define HUFFMAN_BIT_CONTAINER_H
 
 #include <vector>
+#include <limits>
 
 template<typename W>
 class bit_container : public std::vector<W> {
-    static const size_t BLOCK_SIZE = 8;
+    size_t BLOCK_SIZE;
     size_t sz = 0;
 
 public:
@@ -22,7 +19,7 @@ public:
             return *this;
         }
 
-        explicit bool_iterator(bit_container &container2) : container(container2) {}
+        explicit bool_iterator(bit_container &other) : container(other) {}
 
         bool is_end() {
             return position >= container.size();
@@ -33,48 +30,50 @@ public:
         }
     };
 
-    bool exists_last_block()const;
-
     explicit bit_container(size_t n);
 
-    bit_container();
+
+    template<typename = typename std::enable_if<std::is_unsigned<W>::value>::type>
+    bit_container() {
+        BLOCK_SIZE = static_cast<size_t>(std::numeric_limits<W>::digits);
+    }
 
 private:
-    bool extract_bit(size_t block, size_t pos) const;
+    void set_bit(size_t i, bool value);
 
+
+    bool extract_bit(size_t block, size_t pos) const;
 
     /*inline */size_t get_number_of_block(size_t i) const;
 
     /*inline */size_t get_position_in_block(size_t i) const;
 
 public:
-    void set_bit(size_t i, bool value);
 
     bool get_bit(size_t i) const;
 
     W get_block(size_t i) const;
 
-    void push_back(bool x);
-
     void pop_back();
 
-    void drop();
+    void push_back(bool x);
 
-    bit_container &operator+=(bit_container const &other);
+    void drop(size_t x);
 
-    size_t blocks_count()const;
+    bit_container<W> &operator+=(bit_container<W> const &other);
 
     size_t size() const;
 
-//    void resize(size_t);
+    size_t char_blocks_count() const;
 
-    std::string to_string() {
+    /*std::string to_string() {
         std::string result;
         for (size_t i = 0; i < sz; ++i) {
             result += (get_bit(i) ? '1' : '0');
         }
         return result;
-    }
+    }*/
+    bit_container<W> pop();
 };
 
 #include "bit_container.ipp"

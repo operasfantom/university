@@ -11,7 +11,10 @@ class huffman_tree {
 public:
     typedef unsigned char symbol_t;
     typedef std::basic_string<symbol_t> string_t;
-    typedef bit_container<int64_t> container;
+    typedef uint64_t block_t;
+    typedef bit_container<block_t> container;
+
+    static const size_t BLOCK_SIZE = sizeof(block_t);
 private:
     template <typename S>
     struct Node {
@@ -76,7 +79,7 @@ public:
 
     container get_code(symbol_t);
 
-    void set_path(container &);
+    void set_path(const container &);
 
     void set_dictionary(string_t const &);
 
