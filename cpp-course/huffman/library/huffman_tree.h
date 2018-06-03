@@ -11,6 +11,7 @@ class huffman_tree {
 public:
     typedef unsigned char symbol_t;
     typedef std::basic_string<symbol_t> string_t;
+    typedef bit_container<int64_t> container;
 private:
     template <typename S>
     struct Node {
@@ -37,16 +38,16 @@ private:
     };
 
     std::vector<int64_t> cnt;
-    std::vector<bit_container> code;
+    std::vector<container> code;
 
     Node<symbol_t> *root = nullptr;
 
     string_t dictionary;
-    bit_container path;
+    container path;
 
-    void dfs(Node<symbol_t> *vertex, bit_container &current_code, string_t &dictionary, bit_container &path);
+    void dfs(Node<symbol_t> *vertex, container &current_code, string_t &dictionary, container &path);
 
-    void build_tree(Node<symbol_t> *vertex, bit_container::bool_iterator &, symbol_t *&);
+    void build_tree(Node<symbol_t> *vertex, container::bool_iterator &, symbol_t *&);
 
     void delete_tree(Node<symbol_t>* vertex);
 
@@ -69,13 +70,13 @@ public:
 
     void encoding();
 
-    bit_container get_path();
+    container const& get_path() const;
 
-    string_t get_dictionary();
+    const string_t & get_dictionary() const;
 
-    bit_container get_code(symbol_t);
+    container get_code(symbol_t);
 
-    void set_path(const bit_container &);
+    void set_path(container &);
 
     void set_dictionary(string_t const &);
 

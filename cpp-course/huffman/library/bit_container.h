@@ -7,7 +7,8 @@
 
 #include <vector>
 
-class bit_container : public std::vector<char> {
+template<typename W>
+class bit_container : public std::vector<W> {
     static const size_t BLOCK_SIZE = 8;
     size_t sz = 0;
 
@@ -34,12 +35,13 @@ public:
 
     bool exists_last_block()const;
 
-    bit_container(size_t i);
+    explicit bit_container(size_t n);
 
     bit_container();
 
 private:
     bool extract_bit(size_t block, size_t pos) const;
+
 
     /*inline */size_t get_number_of_block(size_t i) const;
 
@@ -50,7 +52,7 @@ public:
 
     bool get_bit(size_t i) const;
 
-    char get_block(size_t i) const;
+    W get_block(size_t i) const;
 
     void push_back(bool x);
 
@@ -64,7 +66,7 @@ public:
 
     size_t size() const;
 
-    void resize();
+//    void resize(size_t);
 
     std::string to_string() {
         std::string result;
@@ -75,5 +77,6 @@ public:
     }
 };
 
+#include "bit_container.ipp"
 
 #endif //HUFFMAN_BIT_CONTAINER_H

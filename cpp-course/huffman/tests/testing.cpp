@@ -2,7 +2,7 @@
 #include "huffman_tree.h"
 #include "gtest/gtest.h"
 
-void my_check(std::string input) {
+void my_check(std::string const &input) {
     huffman_tree tree_encode;
 
     for (auto c : input) {
@@ -11,7 +11,7 @@ void my_check(std::string input) {
 
     tree_encode.encoding();
 
-    bit_container code;
+    huffman_tree::container code;
     for (auto c : input) {
         auto addition = tree_encode.get_code(c);
         code += addition;
@@ -21,7 +21,7 @@ void my_check(std::string input) {
     EXPECT_TRUE(code.size() <= n * std::log2(n + 1));
 
     auto path = tree_encode.get_path();
-    auto dictionary = tree_encode.get_dictionary();
+    auto const &dictionary = tree_encode.get_dictionary();
 
     huffman_tree tree_decode;
 
@@ -32,7 +32,7 @@ void my_check(std::string input) {
     tree_decode.decoding();
 
     std::string result;
-    for (bit_container::bool_iterator it(code); !it.is_end(); ++it) {
+    for (huffman_tree::container::bool_iterator it(code); !it.is_end(); ++it) {
         auto p = tree_decode.transition(it.get());
         if (p.second) {
             result += p.first;
@@ -45,6 +45,7 @@ void my_check(std::string input) {
 TEST(correctness, presample){
     my_check("abc");
 }
+
 TEST(correctness, sample) {
     my_check("abracadabra");
 }

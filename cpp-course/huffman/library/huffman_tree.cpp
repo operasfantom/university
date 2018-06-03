@@ -15,8 +15,7 @@ huffman_tree::huffman_tree() {
 }
 
 
-void
-huffman_tree::dfs(Node<symbol_t> *vertex, bit_container &current_code, string_t &dictionary, bit_container &path) {
+void huffman_tree::dfs(Node<symbol_t> *vertex, container &current_code, string_t &dictionary, container &path) {
     if (is_leaf(vertex)) {
         dictionary.push_back(vertex->symbol);
         code[vertex->symbol] = current_code;
@@ -40,15 +39,15 @@ huffman_tree::dfs(Node<symbol_t> *vertex, bit_container &current_code, string_t 
     path.push_back(false);
 }
 
-bit_container huffman_tree::get_path() {
+huffman_tree::container const &huffman_tree::get_path() const {
     return path;
 }
 
-huffman_tree::string_t huffman_tree::get_dictionary() {
+huffman_tree::string_t const & huffman_tree::get_dictionary() const {
     return dictionary;
 }
 
-bit_container huffman_tree::get_code(symbol_t c) {
+huffman_tree::container huffman_tree::get_code(symbol_t c) {
     return code[c];
 }
 
@@ -63,7 +62,7 @@ huffman_tree::~huffman_tree() {
     delete_tree(root);
 }
 
-void huffman_tree::set_path(const bit_container &path) {
+void huffman_tree::set_path(container &path) {
     this->path = path;
 }
 
@@ -101,7 +100,7 @@ void huffman_tree::encoding() {
     }
     root = q.top();
 
-    bit_container current_code;
+    huffman_tree::container current_code;
     dfs(root, current_code, dictionary, path);
 
     path.pop_back();
@@ -116,7 +115,7 @@ void huffman_tree::decoding() {
 
     Node<symbol_t> *current_node = root = new Node<symbol_t>();
     symbol_t* current_symbol = &dictionary[0];
-    bit_container::bool_iterator current_step(path);
+    container::bool_iterator current_step(path);
     try {
         build_tree(current_node, current_step, current_symbol);
     } catch (std::exception &e) {
@@ -153,7 +152,7 @@ bool huffman_tree::is_leaf(Node<huffman_tree::symbol_t> *vertex) {
     return vertex->left == nullptr && vertex->right == nullptr;
 }
 
-void huffman_tree::build_tree(Node<symbol_t> *vertex, bit_container::bool_iterator &step, symbol_t *&current_symbol) {
+void huffman_tree::build_tree(Node<symbol_t> *vertex, container::bool_iterator &step, symbol_t *&current_symbol) {
     if (!step.is_end() && step.get() == true) {
         build_tree(vertex->left = new Node<symbol_t>(), ++step, current_symbol);
     }

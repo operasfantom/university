@@ -59,10 +59,11 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     size_t text_length = tree.get_text_length();
     print(ofs, text_length);
 
+    ifs.clear();
     ifs.seekg(0, ifs.beg);
 
     while (read_symbol(ifs, c)) {
-        auto addition = tree.get_code(c);
+        auto const& addition = tree.get_code(c);
         acc += addition;
         check_acc_size();
     }
@@ -80,7 +81,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
         throw std::runtime_error("couldn't open input file");
     }
 
-    auto path = read_extended_bit_container(ifs);
+    auto const& path = read_extended_bit_container(ifs);
     tree.set_path(path);
     
     string_t dictionary = read_extended_string(ifs);
