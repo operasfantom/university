@@ -22,21 +22,21 @@ void huffman_tree::dfs(Node<symbol_t> *vertex, container &current_code, string_t
     } else {
         if (vertex->left != nullptr) {
 //            path += 'D';
-            path.push_back(true);
+            path.wide_push_back(true);
             current_code.push_back(false);
             dfs(vertex->left, current_code, dictionary, path);
             current_code.pop_back();
         }
         if (vertex->right != nullptr) {
 //            path += 'D';
-            path.push_back(true);
+            path.wide_push_back(true);
             current_code.push_back(true);
             dfs(vertex->right, current_code, dictionary, path);
             current_code.pop_back();
         }
     }
 //    path += 'U';
-    path.push_back(false);
+    path.wide_push_back(false);
 }
 
 huffman_tree::container const &huffman_tree::get_path() const {

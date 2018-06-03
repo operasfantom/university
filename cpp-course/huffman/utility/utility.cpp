@@ -16,7 +16,7 @@ using container = huffman_tree::container;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-const size_t CRITICAL_SIZE = 1 << 16;
+const size_t CRITICAL_SIZE = 1 << 20;
 
 char buffer[CRITICAL_SIZE];
 

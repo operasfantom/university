@@ -50,7 +50,20 @@ void bit_container<W>::drop(size_t x) {
 }
 
 template<typename W>
-void bit_container<W>::push_back(bool x) {
+void bit_container<W>::push_back(bool x) {//only small container
+    if (std::vector<W>::empty()) {
+        std::vector<W>::push_back(0);
+    }
+    if (x) {
+        std::vector<W>::operator[](0) |= (1ull << sz);
+    } else {
+        std::vector<W>::operator[](0) &= ~(1ull << sz);
+    }
+    ++sz;
+}
+
+template<typename W>
+void bit_container<W>::wide_push_back(bool x) {
     if (get_number_of_block(sz) >= (std::vector<W>::size())) {
         std::vector<W>::push_back(0);
     }
@@ -83,8 +96,7 @@ template<typename W>
 bit_container<W> bit_container<W>::pop() {
     bit_container result(sz % BLOCK_SIZE);
     result[0] = get_block(get_number_of_block(sz - 1));
-    sz /= BLOCK_SIZE;
-    sz *= BLOCK_SIZE;
+    sz -= sz % BLOCK_SIZE;
     return result;
 }
 
@@ -93,23 +105,21 @@ bit_container<W> &bit_container<W>::operator+=(const bit_container<W> &other) {
     if (size() == 0){
         return *this = other;
     }
-    std::vector<W>::push_back(0);
+    if (get_number_of_block(sz + other.size()) >= (std::vector<W>::size())) {
+        std::vector<W>::push_back(0);
+    }
     size_t last_block = get_number_of_block(sz - 1);
     if (sz % BLOCK_SIZE == 0) {
         std::vector<W>::operator[](last_block + 1) = other[0];
     } else {
         size_t shift = sz % BLOCK_SIZE;
         size_t inv_shift = BLOCK_SIZE - shift;
-        if (sz > inv_shift)
-            std::vector<W>::operator[](last_block + 1) = other[0] >> inv_shift;
         std::vector<W>::operator[](last_block) &= (~0ull >> inv_shift);
         std::vector<W>::operator[](last_block) |= other[0] << shift;
+        if (other.size() > inv_shift)
+            std::vector<W>::operator[](last_block + 1) = other[0] >> inv_shift;
     }
     sz += other.size();
-    return *this;
-    /*for (size_t i = 0; i < other.size(); ++i) {
-        push_back(other.get_bit(i));
-    }*/
     return *this;
 }
 

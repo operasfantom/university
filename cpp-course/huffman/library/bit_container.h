@@ -73,6 +73,8 @@ public:
         return result;
     }*/
     bit_container<W> pop();
+
+    void wide_push_back(bool x);
 };
 
 #include "bit_container.ipp"
