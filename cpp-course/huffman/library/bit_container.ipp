@@ -11,6 +11,7 @@ bool bit_container<W>::extract_bit(size_t block, size_t pos) const {
     return (std::vector<W>::operator[](block) >> pos) & 1;
 }
 
+
 template<typename W>
 size_t bit_container<W>::get_number_of_block(size_t i) const {
     return i / BLOCK_SIZE;
@@ -58,14 +59,6 @@ void bit_container<W>::push_back(bool x) {
 }
 
 template<typename W>
-bit_container<W> &bit_container<W>::operator+=(bit_container<W> const &other) {
-    for (size_t i = 0; i < other.size(); ++i) {
-        push_back(other.get_bit(i));
-    }
-    return *this;
-}
-
-template<typename W>
 size_t bit_container<W>::size() const {
     return sz;
 }
@@ -95,9 +88,30 @@ bit_container<W> bit_container<W>::pop() {
     return result;
 }
 
-/*template<typename W>
-bit_container<W>::bit_container() {
-    BLOCK_SIZE = (size_t) std::numeric_limits<W>::digits;
-};*/
+template<typename W>
+bit_container<W> &bit_container<W>::operator+=(const bit_container<W> &other) {
+    if (size() == 0){
+        return *this = other;
+    }
+    std::vector<W>::push_back(0);
+    size_t last_block = get_number_of_block(sz - 1);
+    if (sz % BLOCK_SIZE == 0) {
+        std::vector<W>::operator[](last_block + 1) = other[0];
+    } else {
+        size_t shift = sz % BLOCK_SIZE;
+        size_t inv_shift = BLOCK_SIZE - shift;
+        if (sz > inv_shift)
+            std::vector<W>::operator[](last_block + 1) = other[0] >> inv_shift;
+        std::vector<W>::operator[](last_block) &= (~0ull >> inv_shift);
+        std::vector<W>::operator[](last_block) |= other[0] << shift;
+    }
+    sz += other.size();
+    return *this;
+    /*for (size_t i = 0; i < other.size(); ++i) {
+        push_back(other.get_bit(i));
+    }*/
+    return *this;
+}
+
 
 #endif //HUFFMAN_BIT_CONTAINER_IPP

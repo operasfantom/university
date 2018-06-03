@@ -47,7 +47,7 @@ huffman_tree::string_t const & huffman_tree::get_dictionary() const {
     return dictionary;
 }
 
-huffman_tree::container huffman_tree::get_code(symbol_t c) {
+huffman_tree::container const &huffman_tree::get_code(symbol_t c) {
     return code[c];
 }
 

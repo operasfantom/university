@@ -75,9 +75,9 @@ public:
 
     container const& get_path() const;
 
-    const string_t & get_dictionary() const;
+    string_t const & get_dictionary() const;
 
-    container get_code(symbol_t);
+    container const &get_code(symbol_t);
 
     void set_path(const container &);
 

@@ -47,7 +47,6 @@ private:
     /*inline */size_t get_number_of_block(size_t i) const;
 
     /*inline */size_t get_position_in_block(size_t i) const;
-
 public:
 
     bool get_bit(size_t i) const;
@@ -60,11 +59,11 @@ public:
 
     void drop(size_t x);
 
-    bit_container<W> &operator+=(bit_container<W> const &other);
-
     size_t size() const;
 
     size_t char_blocks_count() const;
+
+    bit_container<W> &operator+=(bit_container<W> const &other);
 
     /*std::string to_string() {
         std::string result;
