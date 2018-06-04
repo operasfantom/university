@@ -27,24 +27,24 @@ huffman_tree::container read_extended_bit_container(std::istream &ifs) {
     return result;
 }
 
-void print(std::ofstream &ofs, size_t n) {
+void print(std::ostream &ofs, size_t n) {
     ofs.write(reinterpret_cast<const char *>(&n), sizeof(n));
 }
 
-void print(std::ofstream &ofs, huffman_tree::string_t const &s) {
+void print(std::ostream &ofs, huffman_tree::string_t const &s) {
     ofs.write(reinterpret_cast<const char *>(s.data()), s.length() * sizeof(s[0]));
 }
 
-void print(std::ofstream &ofs, huffman_tree::container const &s) {
+void print(std::ostream &ofs, huffman_tree::container const &s) {
     ofs.write(reinterpret_cast<const char *>(s.data()), s.char_blocks_count());
 }
 
-void print_extended(std::ofstream &ofs, huffman_tree::string_t const &s) {
+void print_extended(std::ostream &ofs, huffman_tree::string_t const &s) {
     print(ofs, s.size());
     print(ofs, s);
 }
 
-void print_extended(std::ofstream &ofs, huffman_tree::container const &s) {
+void print_extended(std::ostream &ofs, huffman_tree::container const &s) {
     print(ofs, s.size());
     print(ofs, s);
 }
@@ -70,8 +70,7 @@ char binary_file::next_char() {
 bool binary_file::has_next_char() {
     if (position == last) {
         read_buffer();
-        size_t have_been_read = static_cast<size_t>(stream.gcount());
-        last = (buffer + have_been_read);
+        last = (buffer + stream.gcount());
         position = buffer;
     }
     return position != last;
@@ -115,8 +114,9 @@ void binary_file::move_forward_position() {
     ++position;
 }
 
-binary_file::~binary_file() {
-    /*operator delete(buffer);
-    operator delete(position);
-    operator delete(last);*/
+binary_file::~binary_file() = default;
+
+void binary_file::reopen() {
+    stream.clear();
+    stream.seekg(0, std::fstream::beg);
 }

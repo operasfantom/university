@@ -1,14 +1,11 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <algorithm>
 #include <codecvt>
 #include <sstream>
 #include <cstring>
-#include <fstream>
 #include "huffman_tree.h"
 #include "binary_io.h"
-#include "bit_container.h"
 
 using symbol_t = huffman_tree::symbol_t;
 using string_t = huffman_tree::string_t;
@@ -16,13 +13,13 @@ using container = huffman_tree::container;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-const size_t CRITICAL_SIZE = 1u << 1;
+const size_t CRITICAL_SIZE = 1ull << 16;
 const size_t CHAR_DIGITS = 8;
 
 char buffer_input[CRITICAL_SIZE];
 char buffer_output[CRITICAL_SIZE];
 
-void check_acc_size(std::ofstream &ofs, container &acc) {
+void check_acc_size(std::ostream &ofs, container &acc) {
     if (acc.char_blocks_count() > CRITICAL_SIZE) {
         if (!acc.empty()) {
             auto t = acc.pop();
@@ -35,53 +32,35 @@ void check_acc_size(std::ofstream &ofs, container &acc) {
 void encoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
 
-    std::ifstream ifs(file_in, std::ios::binary);
-    if (!ifs.is_open()) {
-        throw std::runtime_error("couldn't open input file");
-    }
-
-    do {
-        ifs.read(buffer_input, sizeof(buffer_input));
-        for (size_t i = 0; i < static_cast<size_t>(ifs.gcount()); ++i){
-            tree.add(static_cast<symbol_t>(buffer_input[i]));
+    try{
+        binary_file input(file_in, std::ios::in);
+        input.set_buffer(buffer_input, sizeof(buffer_input));
+        while (input.has_next_char()){
+            char c = input.next_char();
+            tree.add(static_cast<symbol_t>(c));
         }
-    } while (ifs.gcount() > 0);
-
-    try {
         tree.encoding();
-    } catch (std::exception &e) {
-        std::cerr << e.what();
-    }
 
-    std::ofstream ofs(file_out, std::ios::binary);
-    if (!ofs.is_open()) {
-        throw std::runtime_error("couldn't open output file");
-    }
+        binary_file output(file_out, std::ios::out);
 
-    print_extended(ofs, tree.get_path());
-    print_extended(ofs, tree.get_dictionary());
+        print_extended(output.get_stream(), tree.get_path());
+        print_extended(output.get_stream(), tree.get_dictionary());
 
-    container acc;
+        size_t text_length = tree.get_text_length();
+        print(output.get_stream(), text_length);
 
-    size_t text_length = tree.get_text_length();
-    print(ofs, text_length);
-
-    ifs.clear();
-    ifs.seekg(0, ifs.beg);
-
-    do {
-        ifs.read(buffer_input, sizeof(buffer_input));
-        for (size_t i = 0; i < static_cast<size_t>(ifs.gcount()); ++i){
-            auto const& addition = tree.get_code(static_cast<symbol_t>(buffer_input[i]));
+        input.reopen();
+        container acc;
+        while (input.has_next_char()){
+            char c = input.next_char();
+            auto const& addition = tree.get_code(static_cast<symbol_t>(c));
             acc += addition;
-            check_acc_size(ofs, acc);
+            check_acc_size(output.get_stream(), acc);
         }
-    } while (ifs.gcount() > 0);
-
-    print(ofs, acc);
-
-    ifs.close();
-    ofs.close();
+        print(output.get_stream(), acc);
+    } catch (std::exception const &e){
+        throw;
+    }
 }
 
 void decoding(std::string const &file_in, std::string const &file_out) {

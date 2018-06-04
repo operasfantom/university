@@ -11,7 +11,7 @@
 #include <memory>
 
 template<typename Ch>
-std::ifstream &read_symbol(std::ifstream &ifs, Ch &c) {
+std::istream &read_symbol(std::istream &ifs, Ch &c) {
     ifs.read(reinterpret_cast<char *>(&c), sizeof(c));
     return ifs;
 }
@@ -23,19 +23,19 @@ huffman_tree::string_t read_extended_string(std::istream &ifs);
 huffman_tree::container read_extended_bit_container(std::istream &ifs);
 
 template <typename Ch>
-void print(std::ofstream &ofs, Ch c) {
+void print(std::ostream &ofs, Ch c) {
     ofs.write(reinterpret_cast<const char *>(&c), sizeof(c));
 }
 
-void print(std::ofstream &ofs, size_t n);
+void print(std::ostream &ofs, size_t n);
 
-void print(std::ofstream &ofs, huffman_tree::string_t const &s);
+void print(std::ostream &ofs, huffman_tree::string_t const &s);
 
-void print(std::ofstream &ofs, huffman_tree::container const &s);
+void print(std::ostream &ofs, huffman_tree::container const &s);
 
-void print_extended(std::ofstream &ofs, huffman_tree::string_t const &s);
+void print_extended(std::ostream &ofs, huffman_tree::string_t const &s);
 
-void print_extended(std::ofstream &ofs, huffman_tree::container const &s);
+void print_extended(std::ostream &ofs, huffman_tree::container const &s);
 
 void print(std::ostream &ofs, char *first, char *last);
 
@@ -69,5 +69,7 @@ public:
     void dump(std::ostream &);
 
     void move_forward_position();
+
+    void reopen();
 };
 #endif //HUFFMAN_BINARY_IO_H
