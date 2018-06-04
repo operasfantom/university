@@ -36,4 +36,6 @@ void print_extended(std::ofstream &ofs, huffman_tree::string_t const &s);
 
 void print_extended(std::ofstream &ofs, huffman_tree::container const &s);
 
+void print(std::ofstream &ofs, char *first, char *last);
+
 #endif //HUFFMAN_BINARY_IO_H

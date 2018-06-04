@@ -16,9 +16,20 @@ using container = huffman_tree::container;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-const size_t CRITICAL_SIZE = 1 << 20;
+const size_t CRITICAL_SIZE = 1 << 16;
 
 char buffer[CRITICAL_SIZE];
+char buffer_output[CRITICAL_SIZE];
+
+void check_acc_size(std::ofstream &ofs, container &acc) {
+    if (acc.char_blocks_count() > CRITICAL_SIZE) {
+        if (!acc.empty()) {
+            auto t = acc.pop();
+            print(ofs, acc);
+            acc = t;
+        }
+    }
+};
 
 void encoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
@@ -47,18 +58,9 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     }
 
     print_extended(ofs, tree.get_path());
-    print_extended(ofs, tree.get_dictionary());//TODO move?
+    print_extended(ofs, tree.get_dictionary());
 
     container acc;
-    auto check_acc_size = [&ofs, &acc]() {
-        if (acc.char_blocks_count() > CRITICAL_SIZE) {
-            if (!acc.empty()) {
-                auto t = acc.pop();
-                print(ofs, acc);
-                acc = t;
-            }
-        }
-    };
 
     size_t text_length = tree.get_text_length();
     print(ofs, text_length);
@@ -71,7 +73,7 @@ void encoding(std::string const &file_in, std::string const &file_out) {
         for (size_t i = 0; i < ifs.gcount(); ++i){
             auto const& addition = tree.get_code(static_cast<symbol_t>(buffer[i]));
             acc += addition;
-            check_acc_size();
+            check_acc_size(ofs, acc);
         }
     } while (ifs.gcount() > 0);
 
@@ -107,6 +109,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
         throw std::runtime_error("couldn't open output file");
     }
 
+    char *pointer = buffer_output;
     size_t text_length = read_size_t(ifs);
     bool end_of_file = false;
     do {
@@ -116,9 +119,10 @@ void decoding(std::string const &file_in, std::string const &file_out) {
             for (size_t i = 0; i < min(text_length, 8); ++i) {
                 bool c = static_cast<bool>((t >> i) & 1);
                 try {
-                    auto p = tree.transition(c);
-                    if (p.second) {
-                        print(ofs, p.first);
+                    tree.transition(c, pointer);
+                    if (pointer == buffer_output + CRITICAL_SIZE) {
+                        print(ofs, buffer_output, pointer);
+                        pointer = buffer_output;
                     }
                 } catch (std::exception &e) {
                     std::cerr << e.what();
@@ -134,6 +138,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
             }
         }
     } while (ifs.gcount() > 0);
+    print(ofs, buffer_output, pointer);
 }
 
 void print_signature(std::string const &message) {

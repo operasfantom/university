@@ -85,7 +85,7 @@ public:
 
     void decoding();
 
-    std::pair<symbol_t, bool> transition(bool c);
+    void transition(bool c, char *&buffer);
 
     size_t get_text_length();
 };

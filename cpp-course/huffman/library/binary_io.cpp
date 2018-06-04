@@ -49,3 +49,6 @@ void print_extended(std::ofstream &ofs, huffman_tree::container const &s) {
     print(ofs, s);
 }
 
+void print(std::ofstream &ofs, char *first, char *last) {
+    ofs.write(first, last - first);
+}

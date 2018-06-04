@@ -123,7 +123,7 @@ void huffman_tree::decoding() {
     huffman_tree::current_node = root;
 }
 
-std::pair<huffman_tree::symbol_t, bool> huffman_tree::transition(bool c) {
+void huffman_tree::transition(bool c, char *&buffer) {
     if (c) {
         current_node = current_node->right;
         if (!current_node) {
@@ -138,9 +138,8 @@ std::pair<huffman_tree::symbol_t, bool> huffman_tree::transition(bool c) {
     if (is_leaf(current_node)) {
         symbol_t result = current_node->symbol;
         current_node = root;
-        return std::make_pair(result, true);
+        *(buffer++) = result;
     }
-    return std::make_pair(0, false);
 }
 
 bool huffman_tree::is_leaf(Node<huffman_tree::symbol_t> *vertex) {

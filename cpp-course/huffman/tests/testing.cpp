@@ -33,9 +33,11 @@ void my_check(std::string const &input) {
 
     std::string result;
     for (huffman_tree::container::bool_iterator it(code); !it.is_end(); ++it) {
-        auto p = tree_decode.transition(it.get());
-        if (p.second) {
-            result += p.first;
+        char buffer[2];
+        char *pointer = &buffer[0];
+        tree_decode.transition(it.get(), pointer);
+        if (pointer != &buffer[0]) {
+            result += buffer[0];
         }
     }
 
