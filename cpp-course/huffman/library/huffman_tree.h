@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <vector>
+#include <memory>
 #include "bit_container.h"
 
 const size_t SYMBOLS = 256;
@@ -85,7 +86,7 @@ public:
 
     void decoding();
 
-    void transition(bool c, char *&buffer);
+    bool transition(char c, char *buffer);
 
     size_t get_text_length();
 };

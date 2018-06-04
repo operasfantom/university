@@ -1806,7 +1806,7 @@ using ::std::tuple_size;
 # define GTEST_AMBIGUOUS_ELSE_BLOCKER_ switch (0) case 0: default:  // NOLINT
 #endif
 
-// Use this annotation at the end of a struct/class definition to
+// Use this annotation at the last of a struct/class definition to
 // prevent the compiler from optimizing away instances that are never
 // used.  This is useful when all interesting logic happens inside the
 // c'tor and / or d'tor.  Example:
@@ -1954,7 +1954,7 @@ struct CompileAssert {
 //
 //     GTEST_COMPILE_ASSERT_(5 > 0, some_message);
 //
-//   (They seem to think the ">" in "5 > 0" marks the end of the
+//   (They seem to think the ">" in "5 > 0" marks the last of the
 //   template argument list.)
 //
 // - The array size is (bool(expr) ? 1 : -1), instead of simply
@@ -2426,7 +2426,7 @@ class ThreadWithParam : public ThreadWithParamBase {
 //
 //   Mutex mutex;
 //   ...
-//   MutexLock lock(&mutex);  // Acquires the mutex and releases it at the end
+//   MutexLock lock(&mutex);  // Acquires the mutex and releases it at the last
 //                            // of the current scope.
 //
 // MutexBase implements behavior for both statically and dynamically
@@ -3262,7 +3262,7 @@ class GTEST_API_ Message {
 #endif  // GTEST_HAS_GLOBAL_WSTRING
 
   // Gets the text streamed to this object so far as an std::string.
-  // Each '\0' character in the buffer is replaced with "\\0".
+  // Each '\0' character in the buffer_input is replaced with "\\0".
   //
   // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
   std::string GetString() const;
@@ -3461,7 +3461,7 @@ class GTEST_API_ String {
                                                const wchar_t* rhs);
 
   // Returns true iff the given string ends with the given suffix, ignoring
-  // case. Any string is considered to end with an empty suffix.
+  // case. Any string is considered to last with an empty suffix.
   static bool EndsWithCaseInsensitive(
       const std::string& str, const std::string& suffix);
 
@@ -3478,8 +3478,8 @@ class GTEST_API_ String {
   String();  // Not meant to be instantiated.
 };  // class String
 
-// Gets the content of the stringstream's buffer as an std::string.  Each '\0'
-// character in the buffer is replaced with "\\0".
+// Gets the content of the stringstream's buffer_input as an std::string.  Each '\0'
+// character in the buffer_input is replaced with "\\0".
 GTEST_API_ std::string StringStreamToString(::std::stringstream* stream);
 
 }  // namespace internal
@@ -3627,7 +3627,7 @@ class GTEST_API_ FilePath {
   // Creates directories so that path exists. Returns true if successful or if
   // the directories already exist; returns false if unable to create
   // directories for any reason. Will also return false if the FilePath does
-  // not represent a directory (that is, it doesn't end with a path separator).
+  // not represent a directory (that is, it doesn't last with a path separator).
   bool CreateDirectoriesRecursively() const;
 
   // Create the directory so that path exists. Returns true if successful or
@@ -7866,7 +7866,7 @@ bool ArrayEq(const T* lhs, size_t size, const U* rhs) {
   return true;
 }
 
-// Finds the first element in the iterator range [begin, end) that
+// Finds the first element in the iterator range [begin, last) that
 // equals elem.  Element may be a native array type itself.
 template <typename Iter, typename Element>
 Iter ArrayAwareFind(Iter begin, Iter end, const Element& elem) {
@@ -8453,7 +8453,7 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag();
 //  never executed. The unreachable code macro protects the terminator
 //  statement from generating an 'unreachable code' warning in case
 //  statement unconditionally returns or throws. The Message constructor at
-//  the end allows the syntax of streaming additional messages into the
+//  the last allows the syntax of streaming additional messages into the
 //  macro, for compilational compatibility with EXPECT_DEATH/ASSERT_DEATH.
 # define GTEST_UNSUPPORTED_DEATH_TEST_(statement, regex, terminator) \
     GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
@@ -8507,7 +8507,7 @@ GTEST_API_ bool InDeathTestChild();
 //   when there is a single thread.
 //
 //   2. The parent process clone()s a sub-process and runs the death
-//   test in it; the sub-process exits with code 0 at the end of the
+//   test in it; the sub-process exits with code 0 at the last of the
 //   death test, if it hasn't exited already.
 //
 //   3. The parent process waits for the sub-process to terminate.
@@ -8570,7 +8570,7 @@ GTEST_API_ bool InDeathTestChild();
 //     A*    matches 0 or many occurrences of A
 //     A+    matches 1 or many occurrences of A
 //     ^     matches the beginning of a string (not that of each line)
-//     $     matches the end of a string (not that of each line)
+//     $     matches the last of a string (not that of each line)
 //     xy    matches x followed by y
 //
 //   If you accidentally use PCRE or POSIX extended regex features
@@ -8812,12 +8812,12 @@ TEST_P(FooTest, HasBlahBlah) {
 // are all in the testing namespace:
 //
 //
-//  Range(begin, end [, step]) - Yields values {begin, begin+step,
+//  Range(begin, last [, step]) - Yields values {begin, begin+step,
 //                               begin+step+step, ...}. The values do not
-//                               include end. step defaults to 1.
+//                               include last. step defaults to 1.
 //  Values(v1, v2, ..., vN)    - Yields values {v1, v2, ..., vN}.
 //  ValuesIn(container)        - Yields values from a C-style array, an STL
-//  ValuesIn(begin,end)          container, or an iterator range [begin, end).
+//  ValuesIn(begin,last)          container, or an iterator range [begin, last).
 //  Bool()                     - Yields sequence {false, true}.
 //  Combine(g1, g2, ..., gN)   - Yields all combinations (the Cartesian product
 //                               for the math savvy) of the values generated
@@ -9240,7 +9240,7 @@ linked_ptr<T> make_linked_ptr(T* ptr) {
 //      global namespace.
 //
 // If none of the above is defined, it will print_extended_string the debug string of
-// the value if it is a protocol buffer, or print_extended_string the raw bytes in the
+// the value if it is a protocol buffer_input, or print_extended_string the raw bytes in the
 // value otherwise.
 //
 // To aid debugging: when T is a reference type, the address of the
@@ -10253,7 +10253,7 @@ class RangeGenerator : public ParamGeneratorInterface<T> {
   const T begin_;
   const T end_;
   const IncrementT step_;
-  // The index for the end() iterator. All the elements in the generated
+  // The index for the last() iterator. All the elements in the generated
   // sequence are indexed (0-based) to aid iterator comparison.
   const int end_index_;
 };  // class RangeGenerator
@@ -10302,7 +10302,7 @@ class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<T> {
     // can return a temporary object (and of type other then T), so just
     // having "return &*iterator_;" doesn't work.
     // value_ is updated here and not in Advance() because Advance()
-    // can advance iterator_ beyond the end of the range, and we cannot
+    // can advance iterator_ beyond the last of the range, and we cannot
     // detect that fact. The client code, on the other hand, is
     // responsible for not calling Current() on an out-of-range iterator.
     virtual const T* Current() const {
@@ -13808,7 +13808,7 @@ class CartesianProductGenerator2
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current2_;
@@ -13856,8 +13856,8 @@ class CartesianProductGenerator2
         current_value_ = ParamType(*current1_, *current2_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_;
@@ -13867,7 +13867,7 @@ class CartesianProductGenerator2
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -13927,7 +13927,7 @@ class CartesianProductGenerator3
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current3_;
@@ -13983,8 +13983,8 @@ class CartesianProductGenerator3
         current_value_ = ParamType(*current1_, *current2_, *current3_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -13995,7 +13995,7 @@ class CartesianProductGenerator3
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -14064,7 +14064,7 @@ class CartesianProductGenerator4
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current4_;
@@ -14129,8 +14129,8 @@ class CartesianProductGenerator4
             *current4_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -14142,7 +14142,7 @@ class CartesianProductGenerator4
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -14218,7 +14218,7 @@ class CartesianProductGenerator5
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current5_;
@@ -14291,8 +14291,8 @@ class CartesianProductGenerator5
             *current4_, *current5_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -14305,7 +14305,7 @@ class CartesianProductGenerator5
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -14391,7 +14391,7 @@ class CartesianProductGenerator6
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current6_;
@@ -14472,8 +14472,8 @@ class CartesianProductGenerator6
             *current4_, *current5_, *current6_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -14487,7 +14487,7 @@ class CartesianProductGenerator6
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -14581,7 +14581,7 @@ class CartesianProductGenerator7
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current7_;
@@ -14670,8 +14670,8 @@ class CartesianProductGenerator7
             *current4_, *current5_, *current6_, *current7_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -14686,7 +14686,7 @@ class CartesianProductGenerator7
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -14790,7 +14790,7 @@ class CartesianProductGenerator8
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current8_;
@@ -14887,8 +14887,8 @@ class CartesianProductGenerator8
             *current4_, *current5_, *current6_, *current7_, *current8_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -14904,7 +14904,7 @@ class CartesianProductGenerator8
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -15015,7 +15015,7 @@ class CartesianProductGenerator9
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current9_;
@@ -15121,8 +15121,8 @@ class CartesianProductGenerator9
             *current9_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -15139,7 +15139,7 @@ class CartesianProductGenerator9
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -15258,7 +15258,7 @@ class CartesianProductGenerator10
       return base_;
     }
     // Advance should not be called on beyond-of-range iterators
-    // so no component iterators must be beyond end of range, either.
+    // so no component iterators must be beyond last of range, either.
     virtual void Advance() {
       assert(!AtEnd());
       ++current10_;
@@ -15372,8 +15372,8 @@ class CartesianProductGenerator10
             *current9_, *current10_);
     }
     bool AtEnd() const {
-      // We must report iterator past the end of the range when either of the
-      // component iterators has reached the end of its range.
+      // We must report iterator past the last of the range when either of the
+      // component iterators has reached the last of its range.
       return
           current1_ == end1_ ||
           current2_ == end2_ ||
@@ -15391,7 +15391,7 @@ class CartesianProductGenerator10
     void operator=(const Iterator& other);
 
     const ParamGeneratorInterface<ParamType>* const base_;
-    // begin[i]_ and end[i]_ define the i-th range that Iterator traverses.
+    // begin[i]_ and last[i]_ define the i-th range that Iterator traverses.
     // current[i]_ is the actual traversing iterator.
     const typename ParamGenerator<T1>::iterator begin1_;
     const typename ParamGenerator<T1>::iterator end1_;
@@ -15784,24 +15784,24 @@ namespace testing {
 // Range() returns generators providing sequences of values in a range.
 //
 // Synopsis:
-// Range(start, end)
+// Range(start, last)
 //   - returns a generator producing a sequence of values {start, start+1,
 //     start+2, ..., }.
-// Range(start, end, step)
+// Range(start, last, step)
 //   - returns a generator producing a sequence of values {start, start+step,
 //     start+step+step, ..., }.
 // Notes:
-//   * The generated sequences never include end. For example, Range(1, 5)
+//   * The generated sequences never include last. For example, Range(1, 5)
 //     returns a generator producing a sequence {1, 2, 3, 4}. Range(1, 9, 2)
 //     returns a generator producing {1, 3, 5, 7}.
-//   * start and end must have the same type. That type may be any integral or
+//   * start and last must have the same type. That type may be any integral or
 //     floating-point type or a user defined type satisfying these conditions:
 //     * It must be assignable (have operator=() defined).
 //     * It must have operator+() (operator+(int-compatible type) for
 //       two-operand version).
 //     * It must have operator<() defined.
 //     Elements in the resulting sequences will also have that type.
-//   * Condition start < end must be satisfied in list for resulting sequences
+//   * Condition start < last must be satisfied in list for resulting sequences
 //     to contain any elements.
 //
 template <typename T, typename IncrementT>
@@ -15825,9 +15825,9 @@ internal::ParamGenerator<T> Range(T start, T end) {
 // ValuesIn(const Container& container)
 //   - returns a generator producing sequences with elements from
 //     an STL-style container.
-// ValuesIn(Iterator begin, Iterator end)
+// ValuesIn(Iterator begin, Iterator last)
 //   - returns a generator producing sequences with elements from
-//     a range [begin, end) defined by a pair of STL-style iterators. These
+//     a range [begin, last) defined by a pair of STL-style iterators. These
 //     iterators can also be plain C pointers.
 //
 // Please note that ValuesIn copies the values from the containers
@@ -15868,7 +15868,7 @@ internal::ParamGenerator<T> Range(T start, T end) {
 // ::std::list<char> l = GetParameterChars();
 // INSTANTIATE_TEST_CASE_P(CharSequence2,
 //                         CharTest,
-//                         ValuesIn(l.begin(), l.end()));
+//                         ValuesIn(l.begin(), l.last()));
 //
 template <typename ForwardIterator>
 internal::ParamGenerator<
@@ -18447,7 +18447,7 @@ class GTEST_API_ TestEventListeners {
   TestEventListeners();
   ~TestEventListeners();
 
-  // Appends an event listener to the end of the list. Google Test assumes
+  // Appends an event listener to the last of the list. Google Test assumes
   // the ownership of the listener (i.e. it will delete the listener when
   // the test program finishes).
   void Append(TestEventListener* listener);
@@ -19982,7 +19982,7 @@ bool StaticAssertTypeEq() {
 // The first parameter is the name of the test case, and the second
 // parameter is the name of the test within the test case.
 //
-// The convention is to end the test case name with "Test".  For
+// The convention is to last the test case name with "Test".  For
 // example, a test case for the Foo class can be named FooTest.
 //
 // The user should put his test code between braces after using this

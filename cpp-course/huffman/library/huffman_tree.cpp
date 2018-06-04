@@ -4,6 +4,7 @@
 #include <fstream>
 #include "huffman_tree.h"
 #include <exception>
+#include <bits/shared_ptr.h>
 
 void huffman_tree::add(symbol_t c) {
     ++cnt[c];
@@ -123,7 +124,7 @@ void huffman_tree::decoding() {
     huffman_tree::current_node = root;
 }
 
-void huffman_tree::transition(bool c, char *&buffer) {
+bool huffman_tree::transition(char c, char *buffer) {
     if (c) {
         current_node = current_node->right;
         if (!current_node) {
@@ -136,10 +137,11 @@ void huffman_tree::transition(bool c, char *&buffer) {
         }
     }
     if (is_leaf(current_node)) {
-        symbol_t result = current_node->symbol;
+        *buffer = current_node->symbol;
         current_node = root;
-        *(buffer++) = result;
+        return true;
     }
+    return false;
 }
 
 bool huffman_tree::is_leaf(Node<huffman_tree::symbol_t> *vertex) {

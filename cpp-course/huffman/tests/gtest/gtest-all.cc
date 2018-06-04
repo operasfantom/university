@@ -705,9 +705,9 @@ inline E GetElementOr(const std::vector<E>& v, int i, E default_value) {
 }
 
 // Performs an in-place shuffle of a range of the vector's elements.
-// 'begin' and 'end' are element indices as an STL-style range;
-// i.e. [begin, end) are shuffled, where 'end' == size() means to
-// shuffle to the end of the vector.
+// 'begin' and 'last' are element indices as an STL-style range;
+// i.e. [begin, last) are shuffled, where 'last' == size() means to
+// shuffle to the last of the vector.
 template <typename E>
 void ShuffleRange(internal::Random* random, int begin, int end,
                   std::vector<E>* v) {
@@ -785,7 +785,7 @@ class GTEST_API_ UnitTestOptions {
   // Functions for processing the gtest_filter flag.
 
   // Returns true iff the wildcard pattern matches the string.  The
-  // first ':' or '\0' character in pattern marks the end of it.
+  // first ':' or '\0' character in pattern marks the last of it.
   //
   // This recursive algorithm isn't very efficient, but is clear and
   // works well enough for matching test names, which are short.
@@ -1417,7 +1417,7 @@ bool ParseNaturalNumber(const ::std::string& str, Integer* number) {
 
   // MSVC and C++ Builder define __int64 instead of the standard long long.
   typedef unsigned __int64 BiggestConvertible;
-  const BiggestConvertible parsed = _strtoui64(str.c_str(), &end, 10);
+  const BiggestConvertible parsed = _strtoui64(str.c_str(), &last, 10);
 
 # else
 
@@ -1917,7 +1917,7 @@ std::string UnitTestOptions::GetAbsolutePathToOutputFile() {
 }
 
 // Returns true iff the wildcard pattern matches the string.  The
-// first ':' or '\0' character in pattern marks the end of it.
+// first ':' or '\0' character in pattern marks the last of it.
 //
 // This recursive algorithm isn't very efficient, but is clear and
 // works well enough for matching test names, which are short.
@@ -1925,7 +1925,7 @@ bool UnitTestOptions::PatternMatchesString(const char *pattern,
                                            const char *str) {
   switch (*pattern) {
     case '\0':
-    case ':':  // Either ':' or '\0' marks the end of the pattern.
+    case ':':  // Either ':' or '\0' marks the last of the pattern.
       return *str == '\0';
     case '?':  // Matches any single character.
       return *str != '\0' && PatternMatchesString(pattern + 1, str + 1);
@@ -2426,7 +2426,7 @@ Message& Message::operator <<(const ::wstring& wstr) {
 #endif  // GTEST_HAS_GLOBAL_WSTRING
 
 // Gets the text streamed to this object so far as an std::string.
-// Each '\0' character in the buffer is replaced with "\\0".
+// Each '\0' character in the buffer_input is replaced with "\\0".
 std::string Message::GetString() const {
   return internal::StringStreamToString(ss_.get());
 }
@@ -2843,7 +2843,7 @@ AssertionResult HRESULTFailureHelper(const char* expr,
                                           0,  // no source, we're asking system
                                           hr,  // the error
                                           0,  // no line width restrictions
-                                          error_text,  // output buffer
+                                          error_text,  // output buffer_input
                                           kBufSize,  // buf size
                                           NULL);  // no arguments for inserts
   // Trims tailing white space (FormatMessage leaves a trailing CR-LF)
@@ -3106,7 +3106,7 @@ bool String::CaseInsensitiveWideCStringEquals(const wchar_t* lhs,
 }
 
 // Returns true iff str ends with the given suffix, ignoring case.
-// Any string is considered to end with an empty suffix.
+// Any string is considered to last with an empty suffix.
 bool String::EndsWithCaseInsensitive(
     const std::string& str, const std::string& suffix) {
   const size_t str_len = str.length();
@@ -3138,7 +3138,7 @@ std::string String::FormatByte(unsigned char value) {
   return ss.str();
 }
 
-// Converts the buffer in a stringstream to an std::string, converting NUL
+// Converts the buffer_input in a stringstream to an std::string, converting NUL
 // bytes to "\\0" along the way.
 std::string StringStreamToString(::std::stringstream* ss) {
   const ::std::string& str = ss->str();
@@ -5349,7 +5349,7 @@ int UnitTest::Run() {
   //
   // This allows a test runner to set TEST_PREMATURE_EXIT_FILE before
   // running a Google-Test-based test program and check the existence
-  // of the file at the end of the test execution to see if it has
+  // of the file at the last of the test execution to see if it has
   // exited prematurely.
 
   // If we are in the child process of a death test, don't
@@ -5675,13 +5675,13 @@ TestCase* UnitTestImpl::GetTestCase(const char* test_case_name,
                                                kDeathTestCaseFilter)) {
     // Yes.  Inserts the test case after the last death test case
     // defined so far.  This only works when the test cases haven't
-    // been shuffled.  Otherwise we may end up running a death test
+    // been shuffled.  Otherwise we may last up running a death test
     // after a non-death test.
     ++last_death_test_case_;
     test_cases_.insert(test_cases_.begin() + last_death_test_case_,
                        new_test_case);
   } else {
-    // No.  Appends to the end of the list.
+    // No.  Appends to the last of the list.
     test_cases_.push_back(new_test_case);
   }
 
@@ -6272,7 +6272,7 @@ static void PrintColorEncoded(const char* str) {
   GTestColor color = COLOR_DEFAULT;  // The current color.
 
   // Conceptually, we split the string into segments divided by escape
-  // sequences.  Then we print_extended_string one segment at a time.  At the end of
+  // sequences.  Then we print_extended_string one segment at a time.  At the last of
   // each iteration, the str pointer advances to the beginning of the
   // next segment.
   for (;;) {
@@ -6728,7 +6728,7 @@ static const char kDeathTestInternalError = 'I';
 
 // An enumeration describing all of the possible ways that a death test can
 // conclude.  DIED means that the process died while executing the test
-// code; LIVED means that process lived beyond the end of the test code;
+// code; LIVED means that process lived beyond the last of the test code;
 // RETURNED means that the test statement attempted to execute a return
 // statement, which is not allowed; THREW means that the test statement
 // returned control by throwing an exception.  IN_PROGRESS means the test
@@ -6902,12 +6902,12 @@ class DeathTestImpl : public DeathTest {
   int status_;
   // How the death test concluded.
   DeathTestOutcome outcome_;
-  // Descriptor to the read_symbol end of the pipe to the child process.  It is
-  // always -1 in the child process.  The child keeps its write end of the
+  // Descriptor to the read_symbol last of the pipe to the child process.  It is
+  // always -1 in the child process.  The child keeps its write last of the
   // pipe in write_fd_.
   int read_fd_;
-  // Descriptor to the child's write end of the pipe to the parent process.
-  // It is always -1 in the parent process.  The parent keeps its end of the
+  // Descriptor to the child's write last of the pipe to the parent process.
+  // It is always -1 in the parent process.  The parent keeps its last of the
   // pipe in read_fd_.
   int write_fd_;
 };
@@ -7084,13 +7084,13 @@ bool DeathTestImpl::Passed(bool status_ok) {
 // 1. The parent creates a communication pipe and stores handles to both
 //    ends of it.
 // 2. The parent starts the child and provides it with the information
-//    necessary to acquire the handle to the write end of the pipe.
-// 3. The child acquires the write end of the pipe and signals the parent
+//    necessary to acquire the handle to the write last of the pipe.
+// 3. The child acquires the write last of the pipe and signals the parent
 //    using a Windows event.
-// 4. Now the parent can release the write end of the pipe on its side. If
+// 4. Now the parent can release the write last of the pipe on its side. If
 //    this is done before step 3, the object's reference count goes down to
 //    0 and it is destroyed, preventing the child from acquiring it. The
-//    parent now has to release it, or read operations on the read_symbol end of
+//    parent now has to release it, or read operations on the read_symbol last of
 //    the pipe will not return when the child terminates.
 // 5. The parent reads child's output through the pipe (outcome code and
 //    any possible error messages) from the pipe, and its stderr and then
@@ -7116,12 +7116,12 @@ class WindowsDeathTest : public DeathTestImpl {
   const char* const file_;
   // The line number on which the death test is located.
   const int line_;
-  // Handle to the write end of the pipe to the child process.
+  // Handle to the write last of the pipe to the child process.
   AutoHandle write_handle_;
   // Child process handle.
   AutoHandle child_handle_;
   // Event the child process uses to signal the parent that it has
-  // acquired the handle to the write end of the pipe. After seeing this
+  // acquired the handle to the write last of the pipe. After seeing this
   // event the parent can release its own handles to make sure its
   // ReadFile() calls return when the child terminates.
   AutoHandle event_handle_;
@@ -7134,7 +7134,7 @@ int WindowsDeathTest::Wait() {
   if (!spawned())
     return 0;
 
-  // Wait until the child either signals that it has acquired the write end
+  // Wait until the child either signals that it has acquired the write last
   // of the pipe or it dies.
   const HANDLE wait_handles[2] = { child_handle_.Get(), event_handle_.Get() };
   switch (::WaitForMultipleObjects(2,
@@ -7148,7 +7148,7 @@ int WindowsDeathTest::Wait() {
       GTEST_DEATH_TEST_CHECK_(false);  // Should not get here.
   }
 
-  // The child has acquired the write end of the pipe or exited.
+  // The child has acquired the write last of the pipe or exited.
   // We release the handle on our side and continue.
   write_handle_.Reset();
   event_handle_.Reset();
@@ -7196,7 +7196,7 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
   HANDLE read_handle, write_handle;
   GTEST_DEATH_TEST_CHECK_(
       ::CreatePipe(&read_handle, &write_handle, &handles_are_inheritable,
-                   0)  // Default buffer size.
+                   0)  // Default buffer_input size.
       != FALSE);
   set_read_fd(::_open_osfhandle(reinterpret_cast<intptr_t>(read_handle),
                                 O_RDONLY));
@@ -7414,7 +7414,7 @@ class Arguments {
 // threadsafe-style death test process.
 struct ExecDeathTestArgs {
   char* const* argv;  // Command-line arguments for the child's call to exec
-  int close_fd;       // File descriptor to close; the read_symbol end of a pipe
+  int close_fd;       // File descriptor to close; the read_symbol last of a pipe
 };
 
 #  if GTEST_OS_MAC
@@ -7605,7 +7605,7 @@ DeathTest::TestRole ExecDeathTest::AssumeRole() {
 
   int pipe_fd[2];
   GTEST_DEATH_TEST_CHECK_(pipe(pipe_fd) != -1);
-  // Clear the close-on-exec flag on the write end of the pipe, lest
+  // Clear the close-on-exec flag on the write last of the pipe, lest
   // it be closed when the child process does an exec:
   GTEST_DEATH_TEST_CHECK_(fcntl(pipe_fd[1], F_SETFD, 0) != -1);
 
@@ -7776,8 +7776,8 @@ int GetStatusFileDescriptor(unsigned int parent_process_id,
                    " to a file descriptor");
   }
 
-  // Signals the parent that the write end of the pipe has been acquired
-  // so the parent can release its own write end.
+  // Signals the parent that the write last of the pipe has been acquired
+  // so the parent can release its own write last.
   ::SetEvent(dup_event_handle);
 
   return write_fd;
@@ -8482,7 +8482,7 @@ bool ValidateRegex(const char* regex) {
       i++;
       if (regex[i] == '\0') {
         ADD_FAILURE() << FormatRegexSyntaxError(regex, i - 1)
-                      << "'\\' cannot appear at the end.";
+                      << "'\\' cannot appear at the last.";
         return false;
       }
 
@@ -8501,7 +8501,7 @@ bool ValidateRegex(const char* regex) {
         is_valid = false;
       } else if (ch == '$' && regex[i + 1] != '\0') {
         ADD_FAILURE() << FormatRegexSyntaxError(regex, i)
-                      << "'$' can only appear at the end.";
+                      << "'$' can only appear at the last.";
         is_valid = false;
       } else if (IsInSet(ch, "()[]{}|")) {
         ADD_FAILURE() << FormatRegexSyntaxError(regex, i)
@@ -8558,7 +8558,7 @@ bool MatchRegexAtHead(const char* regex, const char* str) {
   if (*regex == '\0')  // An empty regex matches a prefix of anything.
     return true;
 
-  // "$" only matches the end of a string.  Note that regex being
+  // "$" only matches the last of a string.  Note that regex being
   // valid guarantees that there's nothing after "$" in it.
   if (*regex == '$')
     return *str == '\0';
@@ -8640,21 +8640,21 @@ void RE::Init(const char* regex) {
   // Reserves enough bytes to hold the regular expression used for a
   // full match: we need space to prepend a '^', append a '$', and
   // terminate the string with '\0'.
-  char* buffer = static_cast<char*>(malloc(len + 3));
-  full_pattern_ = buffer;
+  char* buffer_input = static_cast<char*>(malloc(len + 3));
+  full_pattern_ = buffer_input;
 
   if (*regex != '^')
-    *buffer++ = '^';  // Makes sure full_pattern_ starts with '^'.
+    *buffer_input++ = '^';  // Makes sure full_pattern_ starts with '^'.
 
   // We don't use snprintf or strncpy, as they trigger a warning when
   // compiled with VC++ 8.0.
-  memcpy(buffer, regex, len);
-  buffer += len;
+  memcpy(buffer_input, regex, len);
+  buffer_input += len;
 
   if (len == 0 || regex[len - 1] != '$')
-    *buffer++ = '$';  // Makes sure full_pattern_ ends with '$'.
+    *buffer_input++ = '$';  // Makes sure full_pattern_ ends with '$'.
 
-  *buffer = '\0';
+  *buffer_input = '\0';
 }
 
 #endif  // GTEST_USES_POSIX_RE

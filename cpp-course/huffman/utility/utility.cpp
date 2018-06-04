@@ -16,9 +16,10 @@ using container = huffman_tree::container;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-const size_t CRITICAL_SIZE = 1 << 16;
+const size_t CRITICAL_SIZE = 1u << 1;
+const size_t CHAR_DIGITS = 8;
 
-char buffer[CRITICAL_SIZE];
+char buffer_input[CRITICAL_SIZE];
 char buffer_output[CRITICAL_SIZE];
 
 void check_acc_size(std::ofstream &ofs, container &acc) {
@@ -29,7 +30,7 @@ void check_acc_size(std::ofstream &ofs, container &acc) {
             acc = t;
         }
     }
-};
+}
 
 void encoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
@@ -40,9 +41,9 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     }
 
     do {
-        ifs.read(buffer, sizeof(buffer));
-        for (size_t i = 0; i < ifs.gcount(); ++i){
-            tree.add(static_cast<symbol_t>(buffer[i]));
+        ifs.read(buffer_input, sizeof(buffer_input));
+        for (size_t i = 0; i < static_cast<size_t>(ifs.gcount()); ++i){
+            tree.add(static_cast<symbol_t>(buffer_input[i]));
         }
     } while (ifs.gcount() > 0);
 
@@ -69,9 +70,9 @@ void encoding(std::string const &file_in, std::string const &file_out) {
     ifs.seekg(0, ifs.beg);
 
     do {
-        ifs.read(buffer, sizeof(buffer));
-        for (size_t i = 0; i < ifs.gcount(); ++i){
-            auto const& addition = tree.get_code(static_cast<symbol_t>(buffer[i]));
+        ifs.read(buffer_input, sizeof(buffer_input));
+        for (size_t i = 0; i < static_cast<size_t>(ifs.gcount()); ++i){
+            auto const& addition = tree.get_code(static_cast<symbol_t>(buffer_input[i]));
             acc += addition;
             check_acc_size(ofs, acc);
         }
@@ -86,59 +87,35 @@ void encoding(std::string const &file_in, std::string const &file_out) {
 void decoding(std::string const &file_in, std::string const &file_out) {
     huffman_tree tree;
 
-    std::ifstream ifs(file_in, std::ios::binary);
-    if (!ifs.is_open()) {
-        throw std::runtime_error("couldn't open input file");
-    }
-
-    auto const& path = read_extended_bit_container(ifs);
-    tree.set_path(path);
-
-    string_t dictionary = read_extended_string(ifs);
-
-    tree.set_dictionary(dictionary);//TODO move
-
     try {
+        binary_file input(file_in, std::ios::in);
+        input.set_buffer(buffer_input, sizeof(buffer_input));
+        auto const &path = read_extended_bit_container(input.get_stream());
+        tree.set_path(path);
+        string_t dictionary = read_extended_string(input.get_stream());
+        tree.set_dictionary(dictionary);
         tree.decoding();
-    } catch (std::exception &e) {
-        std::cerr << e.what();
-    }
 
-    std::ofstream ofs(file_out, std::ios::binary);
-    if (!ofs.is_open()) {
-        throw std::runtime_error("couldn't open output file");
-    }
-
-    char *pointer = buffer_output;
-    size_t text_length = read_size_t(ifs);
-    bool end_of_file = false;
-    do {
-        ifs.read(buffer, sizeof(buffer));
-        for (size_t i = 0; i < ifs.gcount(); ++i){
-            char t = buffer[i];
-            for (size_t i = 0; i < min(text_length, 8); ++i) {
-                bool c = static_cast<bool>((t >> i) & 1);
-                try {
-                    tree.transition(c, pointer);
-                    if (pointer == buffer_output + CRITICAL_SIZE) {
-                        print(ofs, buffer_output, pointer);
-                        pointer = buffer_output;
-                    }
-                } catch (std::exception &e) {
-                    std::cerr << e.what();
+        binary_file output(file_out, std::ios::out);
+        size_t text_length = read_size_t(input.get_stream());
+        output.set_buffer(buffer_output, sizeof(buffer_output));
+        while (input.has_next_char()) {
+            char c = input.next_char();
+            for (size_t i = 0; i < min(text_length, CHAR_DIGITS); ++i) {
+                if (tree.transition(c & 1, output.get_target())){
+                    output.move_forward_position();
+                }
+                c >>= 1;
+                if (output.full()) {
+                    output.dump(output.get_stream());
                 }
             }
-            if (text_length >= huffman_tree::BLOCK_SIZE) {
-                text_length -= huffman_tree::BLOCK_SIZE;
-            } else {
-                if (end_of_file){
-                    throw std::invalid_argument("not enough symbols in code");
-                }
-                end_of_file = true;
-            }
+            text_length -= CHAR_DIGITS;
         }
-    } while (ifs.gcount() > 0);
-    print(ofs, buffer_output, pointer);
+        output.dump(output.get_stream());
+    } catch (std::exception const &e) {
+        throw;
+    }
 }
 
 void print_signature(std::string const &message) {
