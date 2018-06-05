@@ -7,6 +7,8 @@
 template<typename W>
 class bit_container : public std::vector<W> {
     size_t BLOCK_SIZE;
+    size_t BLOCK_MASK;
+    size_t BLOCK_LOG2;
     size_t sz = 0;
 
 public:
@@ -34,9 +36,9 @@ public:
 
 
     template<typename = typename std::enable_if<std::is_unsigned<W>::value>::type>
-    bit_container() {
-        BLOCK_SIZE = static_cast<size_t>(std::numeric_limits<W>::digits);
-    }
+    bit_container() : BLOCK_SIZE(static_cast<size_t>(std::numeric_limits<W>::digits)),
+                      BLOCK_MASK(BLOCK_SIZE - 1),
+                      BLOCK_LOG2(__builtin_ctz(BLOCK_SIZE)) {}
 
 private:
     void set_bit(size_t i, bool value);
@@ -56,8 +58,6 @@ public:
     void pop_back();
 
     void push_back(bool x);
-
-    void drop(size_t x);
 
     size_t size() const;
 
