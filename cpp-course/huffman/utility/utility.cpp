@@ -11,8 +11,6 @@ using symbol_t = huffman_tree::symbol_t;
 using string_t = huffman_tree::string_t;
 using container = huffman_tree::container;
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
 const size_t CRITICAL_SIZE = 1ull << 16;
 const size_t CHAR_DIGITS = 8;
 
@@ -80,7 +78,7 @@ void decoding(std::string const &file_in, std::string const &file_out) {
         output.set_buffer(buffer_output, sizeof(buffer_output));
         while (input.has_next_char()) {
             char c = input.next_char();
-            for (size_t i = 0; i < min(text_length, CHAR_DIGITS); ++i) {
+            for (size_t i = 0; i < std::min(text_length, CHAR_DIGITS); ++i) {
                 if (tree.transition(c & 1, output.get_target())){
                     output.move_forward_position();
                 }
@@ -98,10 +96,10 @@ void decoding(std::string const &file_in, std::string const &file_out) {
 }
 
 void print_signature(std::string const &message) {
-    fprintf(stderr, "Error:%s\n", message.c_str());
-    fprintf(stderr, "Usage: huffman-utility [OPTION] [FILE1] [FILE2]\n");
-    fprintf(stderr, "-e, --encoding, encode [FILE1] and save result to [FILE2] \n");
-    fprintf(stderr, "-d, --decoding, decode [FILE1] and save result to [FILE2] \n");
+    std::cerr << "Error:" << message << std::endl
+              << "Usage: huffman-utility [OPTION] [FILE1] [FILE2]" << std::endl
+              << "-e, --encoding, encode [FILE1] and save result to [FILE2]" << std::endl
+              << "-d, --decoding, decode [FILE1] and save result to [FILE2]" << std::endl;
 }
 
 void check_signature(int expected, int result) {

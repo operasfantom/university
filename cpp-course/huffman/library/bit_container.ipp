@@ -29,9 +29,9 @@ size_t bit_container<W>::get_position_in_block(size_t i) const {
 template<typename W>
 void bit_container<W>::set_bit(size_t i, bool value) {
     if (value) {
-        std::vector<W>::operator[](get_number_of_block(i)) |= (1ull << get_position_in_block(i));
+        (*this)[get_number_of_block(i)] |= (1ull << get_position_in_block(i));
     } else {
-        std::vector<W>::operator[](get_number_of_block(i)) &= ~(1ull << get_position_in_block(i));
+        (*this)[get_number_of_block(i)] &= ~(1ull << get_position_in_block(i));
     }
 }
 
@@ -42,14 +42,15 @@ bool bit_container<W>::get_bit(size_t i) const {
 
 template<typename W>
 W bit_container<W>::get_block(size_t i) const {
-    return std::vector<W>::operator[](i);
+    return (*this)[i];
 }
 
 template<typename W>
 void bit_container<W>::push_back(bool x) {//only small container
-    if (std::vector<W>::empty()) {
-        std::vector<W>::push_back(0);
+    if (this->empty()) {
+        base_t::push_back(0);
     }
+
     if (x) {
         std::vector<W>::operator[](0) |= (1ull << sz);
     } else {

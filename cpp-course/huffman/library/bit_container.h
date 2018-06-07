@@ -6,6 +6,8 @@
 
 template<typename W>
 class bit_container : public std::vector<W> {
+    typedef std::vector<W> base_t;
+
     size_t BLOCK_SIZE = 0;
     size_t BLOCK_MASK = 0;
     size_t BLOCK_LOG2 = 0;
