@@ -65,13 +65,6 @@ public:
 
     bit_container<W> &operator+=(bit_container<W> const &other);
 
-    /*std::string to_string() {
-        std::string result;
-        for (size_t i = 0; i < sz; ++i) {
-            result += (get_bit(i) ? '1' : '0');
-        }
-        return result;
-    }*/
     bit_container<W> pop();
 
     void wide_push_back(bool x);

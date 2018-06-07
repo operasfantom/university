@@ -20,7 +20,7 @@ void my_check(std::string const &input) {
     double n = input.length();
     EXPECT_TRUE(code.size() <= n * std::log2(n + 1));
 
-    auto path = tree_encode.get_path();
+    auto const &path = tree_encode.get_path();
     auto const &dictionary = tree_encode.get_dictionary();
 
     huffman_tree tree_decode;
@@ -32,14 +32,14 @@ void my_check(std::string const &input) {
     tree_decode.decoding();
 
     std::string result;
+    std::unique_ptr<char> pointer(new char);
     for (huffman_tree::container::bool_iterator it(code); !it.is_end(); ++it) {
-        char buffer[2];
-        char *pointer = &buffer[0];
-        tree_decode.transition(it.get(), pointer);
-        if (pointer != &buffer[0]) {
-            result += buffer[0];
+        if (tree_decode.transition(it.get() & 1, pointer.get())){
+            result += *pointer;
         }
     }
+
+
 
     EXPECT_EQ(input, result);
 }
