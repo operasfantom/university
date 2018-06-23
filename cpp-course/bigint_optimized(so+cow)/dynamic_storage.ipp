@@ -2,6 +2,7 @@
 #define BIGINT_DYNAMIC_STORAGE_HPP
 
 #include "dynamic_storage.h"
+#include "constants.h"
 
 template<typename T>
 dynamic_storage<T>::dynamic_storage() noexcept {

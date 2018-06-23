@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include "constants.h"
 #include <vector>
 #include <iostream>
 #include <cstring>

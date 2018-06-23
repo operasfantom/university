@@ -2,7 +2,6 @@
 #include "arithmetic.h"
 
 #include <algorithm>
-#include <deque>
 
 big_integer::big_integer() noexcept  : sign(PLUS), type(SMALL_OBJECT), number(0) {}
 
@@ -21,6 +20,8 @@ big_integer::~big_integer() {
 }
 
 big_integer::big_integer(int a) noexcept : sign(a >= 0 ? PLUS : MINUS), type(SMALL_OBJECT), number(a) {}
+
+big_integer::big_integer(word_t a) noexcept : sign(PLUS), type(SMALL_OBJECT), number(a) {}
 
 big_integer &big_integer::operator=(big_integer const &other) noexcept {
     if (type == other.type) {
@@ -43,7 +44,7 @@ big_integer &big_integer::operator=(big_integer const &other) noexcept {
     return *this;
 }
 
-big_integer::big_integer(word_t a) noexcept : sign(PLUS), type(SMALL_OBJECT), number(a) {}
+//big_integer::big_integer(int a) noexcept : sign(PLUS), type(SMALL_OBJECT), number(a) {}
 
 big_integer::big_integer(std::string const &str) : big_integer() {
     bool new_sign = (str[0] == '-' ? MINUS : PLUS);
@@ -230,8 +231,7 @@ big_integer &big_integer::operator%=(big_integer const &rhs) {
 big_integer &big_integer::operator&=(big_integer const &rhs) {
     reallocate();
 
-    std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a &= b; };
-    apply_logic(rhs, f);
+    apply_bitwise_operation(rhs, std::bit_and<word_t>());
     this->sign &= rhs.sign;
     return *this;
 }
@@ -239,8 +239,7 @@ big_integer &big_integer::operator&=(big_integer const &rhs) {
 big_integer &big_integer::operator|=(big_integer const &rhs) {
     reallocate();
 
-    std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a |= b; };
-    apply_logic(rhs, f);
+    apply_bitwise_operation(rhs, std::bit_or<word_t>());
     this->sign |= rhs.sign;
     return *this;
 }
@@ -248,8 +247,7 @@ big_integer &big_integer::operator|=(big_integer const &rhs) {
 big_integer &big_integer::operator^=(big_integer const &rhs) {
     reallocate();
 
-    std::function<void(word_t &, word_t)> f = [](word_t &a, word_t b) { a ^= b; };
-    apply_logic(rhs, f);
+    apply_bitwise_operation(rhs, std::bit_xor<word_t>());
     this->sign ^= rhs.sign;
     return *this;
 }
@@ -524,7 +522,7 @@ void big_integer::pop_leading_zeros() {
     }
 }
 
-word_t big_integer::at(size_t i) const {
+big_integer::word_t big_integer::at(size_t i) const {
     if (i < size()) {
         return (*this)[i];
     }
@@ -538,7 +536,7 @@ size_t big_integer::size() const {
     return list.size;
 }
 
-word_t big_integer::zero() const {
+big_integer::word_t big_integer::zero() const {
     return (sign == PLUS ? ZERO_PLUS : ZERO_MINUS);
 }
 
@@ -550,16 +548,16 @@ void big_integer::align(big_integer const &other) {
     reserve(other.size());
 }
 
-void big_integer::apply_logic(big_integer const &rhs, std::function<void(word_t &, word_t)> fun) {
+void big_integer::apply_bitwise_operation(big_integer const &rhs, std::function<word_t(const word_t &, const word_t &)> fun) {
     align(rhs);
 
     if (is_small_object() && rhs.is_small_object()) {
-        fun(number, rhs.number);
+        number = fun(number, rhs.number);
         return;
     }
 
     for (size_t i = 0; i < size(); ++i) {
-        fun((*this)[i], rhs.at(i));
+        (*this)[i] = fun((*this)[i], rhs.at(i));
     }
 
     pop_leading_zeros();
@@ -617,18 +615,16 @@ bool big_integer::is_big_object() const {
     return type == BIG_OBJECT;
 }
 
-word_t &big_integer::operator[](size_t i) {
+big_integer::word_t &big_integer::operator[](size_t i) {
     if (is_small_object()) {
-        assert(i == 0);
         return number;
     } else {
         return list[i];
     }
 }
 
-word_t big_integer::operator[](size_t i) const {
+big_integer::word_t big_integer::operator[](size_t i) const {
     if (is_small_object()) {
-        assert(i == 0);
         return number;
     } else {
         return list[i];
@@ -646,7 +642,7 @@ void big_integer::pop_back() {
     list.pop_back();
 }
 
-word_t big_integer::back() const {
+big_integer::word_t big_integer::back() const {
     if (is_small_object()) {
         return number;
     } else {

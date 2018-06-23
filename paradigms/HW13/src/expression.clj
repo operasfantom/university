@@ -26,25 +26,20 @@
 
 (def symbol-to-binary-operation
   {
-   '+ add
-   '- subtract
-   '* multiply
-   '/ divide
+   '+      add
+   '-      subtract
+   '*      multiply
+   '/      divide
    'negate negate
-   'sinh sinh
-   'cosh cosh
+   'sinh   sinh
+   'cosh   cosh
    })
 
 (defn parseFunction [s]
-  ((fn parse [e]
-     (cond
-       (symbol? e) (variable (str e))
-       (number? e) (constant e)
-       :else (let [op (first e) args (rest e)] (apply (get symbol-to-binary-operation op) (map parse args)))
-       )) (read-string s)))
-
-
-
-
-
-
+  (defn parse [e]
+    (cond
+      (symbol? e) (variable (str e))
+      (number? e) (constant e)
+      :else (let [op (first e) args (rest e)] (apply (get symbol-to-binary-operation op) (map parse args)))
+      ))
+  (parse (read-string s)))

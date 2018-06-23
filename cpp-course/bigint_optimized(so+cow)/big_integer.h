@@ -6,15 +6,17 @@
 #include "big_data.h"
 
 struct big_integer {
+    typedef unsigned long long word_t;
+
     big_integer() noexcept;
 
     big_integer(big_integer const &other) noexcept;
 
     big_integer(int) noexcept;
 
-    big_integer(std::string const &str);
+    big_integer(word_t) noexcept;
 
-    big_integer(word_t a) noexcept;
+    big_integer(std::string const &str);
 
     ~big_integer();
 
@@ -91,7 +93,7 @@ private:
 
     void align(big_integer const &);
 
-    void apply_logic(big_integer const &, std::function<void(word_t &, word_t)>);
+    void apply_bitwise_operation(big_integer const &, std::function<word_t(const word_t &, const word_t &)>);
 
     bool get_significant_bit(word_t back);
 

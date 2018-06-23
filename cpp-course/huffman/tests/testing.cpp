@@ -39,8 +39,6 @@ void my_check(std::string const &input) {
         }
     }
 
-
-
     EXPECT_EQ(input, result);
 }
 

@@ -223,21 +223,32 @@
       ))
   (parse (read-string s)))
 
+(defn in? [coll] (fn [x] (.contains coll x)))
+
+(def start-predicates
+  (vector
+    (in? ['+ '-])
+    (in? ['* '/])
+    ))
+
 (defn parse-recur [lst predicates]
   (if (empty? predicates)
     (
-      let [x (read-string (first lst))]
+      let [x (first lst)]
       (if (number? x)
         (Constant x)
         (Variable x)
         ))
     (
       let [expr (partition-by (first predicates) lst)
-           calc (fn [expr] (parse-recur expr (rest predicates)))]
+           calc (fn [expr] (if (list? (first expr))
+                             (parse-recur (first expr) start-predicates)
+                             (parse-recur expr (rest predicates))))]
+      ;(println lst expr)
       (reduce
         (fn [acc pair]
           (
-            let [op (get symbol-to-binary-operation (read-string (first (first pair))))
+            let [op (get symbol-to-binary-operation (first (first pair)))
                  rhs (calc (last pair))]
             (op acc rhs)
             ))
@@ -245,18 +256,11 @@
       )
     ))
 
-(defn in? [coll] (fn [x] (.contains coll x)))
-
-(require '[clojure.string :as str])
-
 (defn parseObjectInfix [s]
   (parse-recur
-    (str/split s #" ")
-    (vector
-      (in? ["+" "-"])
-      (in? ["*" "/"])
-      ;(in? ["sin" "cos"])
-      ))
+    (read-string (str "(" s ")"))
+    start-predicates
+    )
   )
 
 (defn check [s] (
@@ -264,9 +268,18 @@
                   (println (toString expr))
                   ))
 
+;(check "1")
+;(check "10 + 20")
+;(check "100    +      200 - 3")
 ;(check "1.0 + 2.0 * 3.0 - 4.0")
-;(check "1 / 2 * 3")
+;(check "1 / 2 *      3")
 ;(check "1 * 2 * 3 * 4 * 5")
 ;(check "1 - 2 - 3 - 4 - 5")
-;(check "sin 1")
-;(check "sin 1 * sin 1 + cos 1 * cos 1")
+;(check "1 / 2 / 3 / 4 / 5 / 6")
+;(check "1 - 2 * (3 + 4) + 8")
+;(check "1 / (2 + 3) - (3 + 5) / (6 + 7) + (1 * 1)")
+;(check "1 + 2")
+;(check "(1 + 2)")
+;(check "1000 * 0.004 / 2")
+;(check "((()( (1 * (3 / 2) + 5) - 1000 * 0.504 / 2)))")
+

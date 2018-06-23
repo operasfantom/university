@@ -4,7 +4,8 @@
 #include <cstdio>
 #include <limits>
 
-typedef size_t word_t;
+//typedef size_t word_t;
+#define word_t unsigned long long
 
 const bool PLUS = false;
 const bool MINUS = true;
@@ -25,5 +26,7 @@ const size_t INITIAL_CAPACITY = 2;
 
 const bool SMALL_OBJECT = false;
 const bool BIG_OBJECT = true;
+
+#undef word_t
 
 #endif //BIGINT_CONSTANTS_H
