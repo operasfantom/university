@@ -5,6 +5,7 @@
 #include <memory>
 #include <algorithm>
 #include <new>
+#include <cassert>
 
 constexpr size_t operator "" _sz(unsigned long long n) {
     return n;
@@ -15,6 +16,10 @@ class circular_buffer {
 private:
     size_t sz = 0, cap = 0;
     T *data_ = nullptr, *begin_pos = nullptr, *end_pos = nullptr;
+
+    inline static size_t save_mod(size_t x, size_t m){
+        return (x >= m ? x - m : x);
+    }
 
     void construct(T *p, T const &value) {
         new(p) T(value);
@@ -75,7 +80,7 @@ private:
 
         cap = n;
         begin_pos = data_;
-        end_pos = data_ + (sz % cap);
+        end_pos = data_ + sz;
     }
     //endregion
 public:
@@ -146,12 +151,12 @@ public:
         }
 
         any_cv_iterator &operator+=(typename base_t::difference_type delta) {
-            vertex = buf->begin_pos + ((vertex + delta - buf->begin_pos) % buf->cap);
+            vertex = buf->begin_pos + save_mod(vertex - buf->begin_pos + delta, buf->cap);
             return *this;
         }
 
         any_cv_iterator &operator-=(typename base_t::difference_type delta) {
-            vertex = buf->begin_pos + (((buf->cap) + vertex - delta - buf->begin_pos) % buf->cap);
+            vertex = buf->begin_pos + save_mod(vertex - buf->begin_pos + buf->cap - delta, buf->cap);;
             return *this;
         }
 
@@ -167,7 +172,7 @@ public:
 
         typename base_t::difference_type operator-(any_cv_iterator const &other) const {
             assert(buf == other.buf);
-            return (vertex + buf->cap - other.vertex) % buf->cap;
+            return save_mod(vertex + buf->cap - other.vertex, buf->cap);
         }
 
         size_t get_pos() const noexcept {
@@ -214,6 +219,7 @@ public:
 
         friend void swap(any_cv_iterator &a, any_cv_iterator &b) noexcept {
             std::swap(a.vertex, b.vertex);
+            std::swap(a.buf, b.buf);
         };
     };
 
@@ -390,11 +396,13 @@ void circular_buffer<T>::pop_back() {
 
 template<typename T>
 T &circular_buffer<T>::operator[](size_t index) {
+    assert(index < sz);
     return data_[((begin_pos - data_) + index) % cap];
 }
 
 template<typename T>
 T const &circular_buffer<T>::operator[](size_t index) const {
+    assert(index < sz);
     return data_[((begin_pos - data_) + index) % cap];
 }
 
