@@ -101,8 +101,9 @@ public:
                 typename std::conditional<is_const, T const &, T &>::type
         > base_t;
 
-        circular_buffer<T> const *buf;
-        T *vertex;
+        T *vertex = nullptr, *begin_data = nullptr, *end_data = nullptr;
+        size_t cap = 0, sz = 0;
+        T* begin_pos = nullptr;
 
         friend circular_buffer<T>;
 
@@ -113,9 +114,13 @@ public:
     public:
         any_cv_iterator() noexcept = default;
 
-        any_cv_iterator(circular_buffer<T> const *container, T *p) noexcept : buf(container), vertex(p) {};
+        any_cv_iterator(circular_buffer<T> const *container, T *p) noexcept :
+                vertex(p), begin_data(container->data_), end_data(container->data_ + container->cap),
+                cap(container->cap), sz(container->sz), begin_pos(container->begin_pos) {};
 
-        any_cv_iterator(any_cv_iterator<false> const &other) noexcept : buf(other.buf), vertex(other.vertex) {}
+        any_cv_iterator(any_cv_iterator<false> const &other) noexcept :
+                vertex(other.vertex), begin_data(other.begin_data), end_data(other.end_data),
+                                                                        cap(other.cap), sz(other.sz), begin_pos(other.begin_pos) {}
 
         any_cv_iterator &operator=(any_cv_iterator const &other) noexcept {
             if (this == &other) {
@@ -129,7 +134,7 @@ public:
         virtual ~any_cv_iterator() = default;
 
         any_cv_iterator &operator++() {
-            buf->pointer_inc(vertex);
+            vertex = (vertex + 1 == end_data ? begin_data : vertex + 1);
             return *this;
         }
 
@@ -140,7 +145,7 @@ public:
         }
 
         any_cv_iterator &operator--() {
-            buf->pointer_dec(vertex);
+            vertex = (vertex == begin_data ? end_data - 1 : vertex - 1);
             return *this;
         }
 
@@ -151,12 +156,12 @@ public:
         }
 
         any_cv_iterator &operator+=(typename base_t::difference_type delta) {
-            vertex = buf->begin_pos + save_mod(vertex - buf->begin_pos + delta, buf->cap);
+            vertex = begin_data + save_mod(vertex - begin_data + delta, cap);
             return *this;
         }
 
         any_cv_iterator &operator-=(typename base_t::difference_type delta) {
-            vertex = buf->begin_pos + save_mod(vertex - buf->begin_pos + buf->cap - delta, buf->cap);;
+            vertex = begin_data + save_mod(vertex - begin_data + cap - delta, cap);
             return *this;
         }
 
@@ -171,12 +176,11 @@ public:
         }
 
         typename base_t::difference_type operator-(any_cv_iterator const &other) const {
-            assert(buf == other.buf);
-            return save_mod(vertex + buf->cap - other.vertex, buf->cap);
+            return save_mod(vertex + cap - other.vertex, cap);
         }
 
         size_t get_pos() const noexcept {
-            return *this - buf->begin();
+            return save_mod(vertex - begin_pos + cap, cap);
         }
 
         template<bool any_cv>
@@ -219,7 +223,10 @@ public:
 
         friend void swap(any_cv_iterator &a, any_cv_iterator &b) noexcept {
             std::swap(a.vertex, b.vertex);
-            std::swap(a.buf, b.buf);
+            std::swap(a.begin_data, b.begin_data);
+            std::swap(a.end_data, b.end_data);
+            std::swap(a.cap, b.cap);
+            std::swap(a.sz, b.sz);
         };
     };
 
@@ -319,7 +326,7 @@ public:
 
 private:
     bool closer_to_the_beginning(const_iterator it) const {
-        return it.get_pos() < it.buf->sz / 2;
+        return it.get_pos() < it.sz / 2;
     }
 
     void shift_back(iterator it1, iterator it2) {
@@ -432,19 +439,19 @@ typename circular_buffer<T>::iterator circular_buffer<T>::insert(circular_buffer
         change_capacity();
     }
     iterator non_const_pos = begin() + index;
-    iterator result = non_const_pos;
     if (from_front) {
         construct((begin() - 1).vertex, value);
         shift_back(begin(), non_const_pos - 1);
         pointer_dec(begin_pos);
-        --result;
+        ++sz;
+        return begin() + index - 1;
     } else {
         construct(end().vertex, value);
         shift_forward(non_const_pos, end() - 1);
         pointer_inc(end_pos);
+        ++sz;
+        return begin() + index;
     }
-    ++sz;
-    return result;
 }
 
 template<typename T>
