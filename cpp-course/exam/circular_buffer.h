@@ -55,6 +55,7 @@ private:
         if (n == 0) return;
         T *new_data = static_cast<T *>(operator new(n * sizeof(T)));
         size_t i = 0;
+        circular_buffer tmp;
         try {
             for (auto it = begin(); it != end(); ++it, ++i) {
                 construct(new_data + i, *it);
@@ -69,6 +70,7 @@ private:
                 destruct(new_data[j]);
             }
             operator delete(new_data);
+            throw;
         }
 
         cap = n;
@@ -353,7 +355,12 @@ void circular_buffer<T>::push_front(const T &value) {
         change_capacity();
     }
     pointer_dec(begin_pos);
-    construct(begin_pos, value);
+    try{
+        construct(begin_pos, value);
+    } catch (...) {
+        pointer_inc(begin_pos);
+        throw;
+    }
     ++sz;
 }
 

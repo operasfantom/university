@@ -10,7 +10,7 @@ add_executable(testing
         gtest/gtest-all.cc
         gtest/gtest.h
         gtest/gtest_main.cc
-        testing.cpp
+        testing2.cpp
         counted.h
         counted.cpp
         fault_injection.h
