@@ -215,27 +215,15 @@ public:
         };
     };
 
-    template<bool is_const = true>
-    struct cb_reverse_iterator : public std::reverse_iterator<any_cv_iterator<is_const>> {
-        typedef std::reverse_iterator<any_cv_iterator<is_const>> base_t;
-
-        cb_reverse_iterator(circular_buffer<T> const *container, T *p) {
-            (*this).current.buf = container;
-            (*this).current.vertex = p;
-        }
-
-        cb_reverse_iterator(any_cv_iterator<false> const &other) : base_t(other) {};
-    };
-
 public:
     //region Typedefs
 
     typedef any_cv_iterator<false> iterator;
     typedef any_cv_iterator<true> const_iterator;
-    /*typedef std::reverse_iterator<iterator> reverse_iterator;
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;*/
-    typedef cb_reverse_iterator<false> reverse_iterator;
-    typedef cb_reverse_iterator<true> const_reverse_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    /*typedef cb_reverse_iterator<false> reverse_iterator;
+    typedef cb_reverse_iterator<true> const_reverse_iterator;*/
     //endregion
 
     //region Constructors
@@ -312,13 +300,13 @@ public:
 
     const_iterator end() const { return const_iterator(this, end_pos); }
 
-    reverse_iterator rbegin() { return reverse_iterator(this, end_pos); }
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
 
-    const_reverse_iterator rbegin() const { return const_reverse_iterator(this, end_pos); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 
-    reverse_iterator rend() { return reverse_iterator(this, begin_pos); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
 
-    const_reverse_iterator rend() const { return const_reverse_iterator(this, begin_pos); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
     //endregion
 
 private:
